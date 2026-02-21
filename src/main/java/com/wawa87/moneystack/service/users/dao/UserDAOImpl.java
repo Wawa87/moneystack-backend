@@ -3,10 +3,7 @@ package com.wawa87.moneystack.service.users.dao;
 import com.wawa87.moneystack.service.users.models.User;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -22,7 +19,30 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public Optional<User> save(User user) {
-        return null;
+        String sql = "INSERT INTO ms_users " +
+                "(user_id, emails, first_name, last_name, phone_number)" +
+                "VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = this.dataSource.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+//            Array emailsArray = conn.createArrayOf("emails", user.getEmails().toArray());
+            stmt.setString(1, user.getUserId());
+            stmt.setString(2, user.getEmails().toString());
+            stmt.setString(3, user.getFirstName());
+            stmt.setString(4, user.getLastName());
+            stmt.setString(5, user.getPhoneNumber());
+            stmt.execute();
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    user.setId(generatedKeys.getLong(1));
+                    return Optional.of(user);
+                }
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override

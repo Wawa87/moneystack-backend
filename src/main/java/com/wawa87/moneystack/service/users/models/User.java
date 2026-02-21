@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class User {
     private Long id;
-    private String user_id;
+    private String userId;
     private ArrayList<String> emails;
     private String firstName;
     private String lastName;
@@ -20,12 +20,12 @@ public class User {
         this.id = id;
     }
 
-    public String getUser_id() {
-        return user_id;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setUser_id(String user_id) {
-        this.user_id = user_id;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public ArrayList<String> getEmails() {
