@@ -34,7 +34,7 @@ public class UserDAOImplTest {
 
             Optional<User> rsUser = userDAO.save(user);
             Assertions.assertTrue((rsUser.isPresent()));
-            Assertions.assertTrue(rsUser.get().getId() != null);
+            Assertions.assertNotNull(rsUser.get().getId());
 
             connection.rollback();
         } catch (SQLException e) {
@@ -65,13 +65,13 @@ public class UserDAOImplTest {
 
             Optional<User> user1 = userDAO.findById(rsUser.get().getId());
             Assertions.assertTrue(user1.isPresent());
-            Assertions.assertTrue(user1.get().getUserId().equals("testuser"));
-            Assertions.assertTrue(user1.get().getEmails().get(0).equals("testuser@email1.com"));
-            Assertions.assertTrue(user1.get().getEmails().get(1).equals("testuser@email2.com"));
-            Assertions.assertTrue(user1.get().getEmails().get(2).equals("testuser@email3.com"));
-            Assertions.assertTrue(user1.get().getFirstName().equals("Test"));
-            Assertions.assertTrue(user1.get().getLastName().equals("User"));
-            Assertions.assertTrue(user1.get().getPhoneNumber().equals("+16195554321"));
+            Assertions.assertEquals("testuser", user1.get().getUserId());
+            Assertions.assertEquals("testuser@email1.com", user1.get().getEmails().get(0));
+            Assertions.assertEquals("testuser@email2.com", user1.get().getEmails().get(1));
+            Assertions.assertEquals("testuser@email3.com", user1.get().getEmails().get(2));
+            Assertions.assertEquals("Test", user1.get().getFirstName());
+            Assertions.assertEquals("User", user1.get().getLastName());
+            Assertions.assertEquals("+16195554321", user1.get().getPhoneNumber());
 
             connection.rollback();
         } catch (SQLException e) {
