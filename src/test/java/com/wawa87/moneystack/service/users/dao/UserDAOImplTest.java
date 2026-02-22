@@ -13,7 +13,6 @@ import java.util.Optional;
 
 public class UserDAOImplTest {
     @Test
-    @Disabled
     public void testSave() {
         try (Connection connection = PGUtil.getDataSource().getConnection()) {
             connection.setAutoCommit(false);

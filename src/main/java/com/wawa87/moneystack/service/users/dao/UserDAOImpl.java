@@ -101,7 +101,7 @@ public class UserDAOImpl implements UserDAO {
 
         String json = rs.getString("emails");
         ObjectMapper objectMapper = new ObjectMapper();
-        ArrayList<String> emails = objectMapper.readValue(json, new TypeReference<ArrayList<>>() {
+        ArrayList<String> emails = objectMapper.readValue(json, new TypeReference<ArrayList<String>>() {
         });
         user.setEmails(emails);
 
