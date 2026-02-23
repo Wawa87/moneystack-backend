@@ -71,6 +71,18 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public List<User> findAll() {
+        String sql = "SELECT * FROM ms_users";
+        List<User> users = new ArrayList<>();
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    users.add(mapRow(rs));
+                }
+                return users;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return List.of();
     }
 
