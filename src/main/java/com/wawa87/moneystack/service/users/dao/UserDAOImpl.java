@@ -1,6 +1,8 @@
 package com.wawa87.moneystack.service.users.dao;
 
 import com.wawa87.moneystack.service.users.models.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
@@ -14,11 +16,14 @@ import java.util.List;
 import java.util.Optional;
 
 public class UserDAOImpl implements UserDAO {
-    private final Connection connection;
-    private final DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+    private static final Logger logger = LoggerFactory.getLogger(UserDAOImpl.class);
+    private static final DateTimeFormatter formatter = new DateTimeFormatterBuilder()
             .appendPattern("yyyy-MM-dd HH:mm:ss")
             .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)  // 0-9 digits, optional
             .toFormatter();
+    private static final ObjectMapper mapper = new ObjectMapper();
+
+    private final Connection connection;
 
     public UserDAOImpl(Connection connection) {
         this.connection = connection;
@@ -28,29 +33,28 @@ public class UserDAOImpl implements UserDAO {
     public Optional<User> save(User user) {
         String sql = "INSERT INTO ms_users " +
                 "(user_id, emails, first_name, last_name, phone_number)" +
-                "VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                "VALUES (?, ?, ?, ?, ?) RETURNING id, created_at";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, user.getUserId());
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            String json = objectMapper.writeValueAsString(user.getEmails());
+            String json = mapper.writeValueAsString(user.getEmails());
             stmt.setString(2, json);
 
             stmt.setString(3, user.getFirstName());
             stmt.setString(4, user.getLastName());
             stmt.setString(5, user.getPhoneNumber());
-            stmt.execute();
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    user.setId(generatedKeys.getLong(1));
-                    LocalDateTime createdAt = LocalDateTime.parse(generatedKeys.getString("created_at"), formatter);
+
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                if (resultSet.next()) {
+                    user.setId(resultSet.getLong(1));
+                    LocalDateTime createdAt = LocalDateTime.parse(resultSet.getString("created_at"), formatter);
                     user.setCreatedAt(createdAt);
                     return Optional.of(user);
                 }
                 return Optional.empty();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("SQLException: ", e);
             throw new RuntimeException(e.getMessage());
         }
     }
@@ -69,7 +73,7 @@ public class UserDAOImpl implements UserDAO {
                 return Optional.empty();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("SQLException: ", e);
             throw new RuntimeException(e.getMessage());
         }
     }
@@ -97,8 +101,7 @@ public class UserDAOImpl implements UserDAO {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, user.getUserId());
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            String json = objectMapper.writeValueAsString(user.getEmails());
+            String json = mapper.writeValueAsString(user.getEmails());
             stmt.setString(2, json);
 
             stmt.setString(3, user.getFirstName());
@@ -114,9 +117,9 @@ public class UserDAOImpl implements UserDAO {
 
             return stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("SQLException: ", e);
+            throw new RuntimeException(e.getMessage());
         }
-        return -1;
     }
 
     @Override
