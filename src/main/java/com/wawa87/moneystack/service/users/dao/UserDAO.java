@@ -15,9 +15,8 @@ public interface UserDAO {
 
     // Update
     int update(User user);
-    int updateById(Long id);
 
     // Delete
     int deleteById(Long id);
-    void delete(User user);
+    int delete(User user);
 }

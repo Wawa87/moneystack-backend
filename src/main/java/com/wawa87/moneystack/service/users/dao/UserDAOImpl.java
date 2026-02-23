@@ -123,18 +123,27 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public int updateById(Long id) {
-        return 0;
-    }
-
-    @Override
     public int deleteById(Long id) {
-        return 0;
+        String sql = "DELETE FROM ms_users WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            return stmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("SQLException: ", e);
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
-    public void delete(User user) {
-
+    public int delete(User user) {
+        String sql = "DELETE FROM ms_users WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, user.getId());
+            return stmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("SQLException: ", e);
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     private User mapRow(ResultSet rs) throws SQLException {

@@ -193,4 +193,82 @@ public class UserDAOImplTest {
             e.printStackTrace();
         }
     }
+
+    @Test
+    public void testDeleteById() {
+        try (Connection connection = PGUtil.getDataSource().getConnection()) {
+            connection.setAutoCommit(false);
+            UserDAOImpl userDAO = new UserDAOImpl(connection);
+
+            // Create test Users.
+            User user = new User();
+            user.setUserId("testuser");
+
+            ArrayList<String> emails = new ArrayList<>();
+            emails.add("testuser@email1.com");
+            emails.add("testuser@email2.com");
+            emails.add("testuser@email3.com");
+            user.setEmails(emails);
+
+            user.setFirstName("Test");
+            user.setLastName("User");
+            user.setPhoneNumber("+16195554321");
+
+            user = (userDAO.save(user)).get();
+
+            // Test delete fail response.
+            int resFail = userDAO.deleteById(Long.valueOf(0));
+
+            Assertions.assertEquals(0, resFail);
+
+            // Test delete success response.
+            int resSuccess = userDAO.deleteById(Long.valueOf(user.getId()));
+
+            Assertions.assertEquals(1, resSuccess);
+
+            connection.rollback();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testDelete() {
+        try (Connection connection = PGUtil.getDataSource().getConnection()) {
+            connection.setAutoCommit(false);
+            UserDAOImpl userDAO = new UserDAOImpl(connection);
+
+            // Create test Users.
+            User user = new User();
+            user.setUserId("testuser");
+
+            ArrayList<String> emails = new ArrayList<>();
+            emails.add("testuser@email1.com");
+            emails.add("testuser@email2.com");
+            emails.add("testuser@email3.com");
+            user.setEmails(emails);
+
+            user.setFirstName("Test");
+            user.setLastName("User");
+            user.setPhoneNumber("+16195554321");
+
+            user = (userDAO.save(user)).get();
+
+            // Test delete fail response.
+            User failUser = new User();
+            failUser.setId(Long.valueOf(0));
+            int resFail = userDAO.delete(failUser);
+
+            Assertions.assertEquals(0, resFail);
+
+            // Test delete success response.
+            int resSuccess = userDAO.delete(user);
+
+            Assertions.assertEquals(1, resSuccess);
+
+            connection.rollback();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
