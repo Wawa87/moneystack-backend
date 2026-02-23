@@ -7,6 +7,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -53,7 +54,7 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public Optional<User> findById(Long id) {
         String sql = "SELECT " +
-                "id, user_id, emails, first_name, last_name, phone_number, created_at " +
+                "id, user_id, emails, first_name, last_name, phone_number, created_at, updated_at " +
                 "FROM ms_users WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
@@ -87,8 +88,31 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public User update(User user) {
-        return null;
+    public int update(User user) {
+        String sql = "UPDATE ms_users SET user_id=?, emails=?, first_name=?, last_name=?, phone_number=?, updated_at=? WHERE id=?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, user.getUserId());
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json = objectMapper.writeValueAsString(user.getEmails());
+            stmt.setString(2, json);
+
+            stmt.setString(3, user.getFirstName());
+            stmt.setString(4, user.getLastName());
+            stmt.setString(5, user.getPhoneNumber());
+
+            LocalDateTime updatedAt = LocalDateTime.now();
+            user.setUpdatedAt(updatedAt);
+            String updatedAtStr = updatedAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")).toString();
+            stmt.setTimestamp(6, Timestamp.valueOf(updatedAt));
+
+            stmt.setLong(7, user.getId());
+
+            return stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     @Override
@@ -123,6 +147,10 @@ public class UserDAOImpl implements UserDAO {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");
         user.setCreatedAt(LocalDateTime.parse(rs.getString("created_at"), formatter));
+
+        if (rs.getString("updated_at") != null && rs.getString("updated_at").length() > 0) {
+            user.setUpdatedAt(LocalDateTime.parse(rs.getString("updated_at"), formatter));
+        }
 
         return user;
     }

@@ -136,4 +136,61 @@ public class UserDAOImplTest {
             e.printStackTrace();
         }
     }
+
+    @Test
+    public void testUpdate() {
+        try (Connection connection = PGUtil.getDataSource().getConnection()) {
+            connection.setAutoCommit(false);
+            UserDAOImpl userDAO = new UserDAOImpl(connection);
+
+            // Create test Users.
+            User user = new User();
+            user.setUserId("testuser");
+
+            ArrayList<String> emails = new ArrayList<>();
+            emails.add("testuser@email1.com");
+            emails.add("testuser@email2.com");
+            emails.add("testuser@email3.com");
+            user.setEmails(emails);
+
+            user.setFirstName("Test");
+            user.setLastName("User");
+            user.setPhoneNumber("+16195554321");
+
+            user = (userDAO.save(user)).get();
+
+            // Update values on the User object.
+            user.setUserId("ckramer");
+
+            emails.clear();
+            emails.add("ckramer@email1.com");
+            emails.add("ckramer@email2.com");
+            emails.add("ckramer@email3.com");
+
+            user.setFirstName("Cosmo");
+            user.setLastName("Kramer");
+            user.setPhoneNumber("+18385554321");
+
+            // Update the database record.
+            int result = userDAO.update(user);
+
+            // Query the user that was updated. Test that values match the updated values.
+            Optional<User> oUser1 = userDAO.findById(user.getId());
+
+            Assertions.assertTrue(oUser1.isPresent());
+
+            User user1 = oUser1.get();
+
+            Assertions.assertEquals(user1.getId(), user.getId());
+            Assertions.assertEquals(user1.getUserId(), "ckramer");
+            Assertions.assertEquals(user1.getFirstName(), "Cosmo");
+            Assertions.assertEquals(user1.getLastName(), "Kramer");
+            Assertions.assertEquals(user1.getPhoneNumber(), "+18385554321");
+            Assertions.assertNotNull(user1.getUpdatedAt());
+
+            connection.rollback();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
