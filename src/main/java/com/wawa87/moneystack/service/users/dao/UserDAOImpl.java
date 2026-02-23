@@ -8,12 +8,17 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class UserDAOImpl implements UserDAO {
     private final Connection connection;
+    private final DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+            .appendPattern("yyyy-MM-dd HH:mm:ss")
+            .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)  // 0-9 digits, optional
+            .toFormatter();
 
     public UserDAOImpl(Connection connection) {
         this.connection = connection;
@@ -38,7 +43,6 @@ public class UserDAOImpl implements UserDAO {
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     user.setId(generatedKeys.getLong(1));
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");
                     LocalDateTime createdAt = LocalDateTime.parse(generatedKeys.getString("created_at"), formatter);
                     user.setCreatedAt(createdAt);
                     return Optional.of(user);
@@ -103,7 +107,7 @@ public class UserDAOImpl implements UserDAO {
 
             LocalDateTime updatedAt = LocalDateTime.now();
             user.setUpdatedAt(updatedAt);
-            String updatedAtStr = updatedAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")).toString();
+            String updatedAtStr = updatedAt.format(formatter).toString();
             stmt.setTimestamp(6, Timestamp.valueOf(updatedAt));
 
             stmt.setLong(7, user.getId());
@@ -145,7 +149,6 @@ public class UserDAOImpl implements UserDAO {
         user.setLastName(rs.getString("last_name"));
         user.setPhoneNumber(rs.getString("phone_number"));
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");
         user.setCreatedAt(LocalDateTime.parse(rs.getString("created_at"), formatter));
 
         if (rs.getString("updated_at") != null && rs.getString("updated_at").length() > 0) {
