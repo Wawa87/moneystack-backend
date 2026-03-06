@@ -27,7 +27,7 @@ public class App {
         );
 
         ServletHolder authenticationServlet = new ServletHolder(new AuthenticationServlet());
-        context.addServlet(authenticationServlet, "/authentication");
+        context.addServlet(authenticationServlet, "/authentication/login");
 
         server.start();
         server.join();
