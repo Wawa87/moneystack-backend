@@ -2,6 +2,8 @@ package com.wawa87.moneystack;
 
 import com.wawa87.moneystack.service.auth.AuthenticationServlet;
 import com.wawa87.moneystack.service.auth.DispatcherFilter;
+import de.mkammerer.argon2.Argon2;
+import de.mkammerer.argon2.Argon2Factory;
 import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -19,12 +21,12 @@ public class App {
         context.setContextPath("/");
         server.setHandler(context);
 
-        FilterHolder dispatcherFilter = new FilterHolder(new DispatcherFilter());
-        context.addFilter(
-                dispatcherFilter,
-                "/*",
-                EnumSet.of(DispatcherType.REQUEST)
-        );
+//        FilterHolder dispatcherFilter = new FilterHolder(new DispatcherFilter());
+//        context.addFilter(
+//                dispatcherFilter,
+//                "/*",
+//                EnumSet.of(DispatcherType.REQUEST)
+//        );
 
         ServletHolder authenticationServlet = new ServletHolder(new AuthenticationServlet());
         context.addServlet(authenticationServlet, "/authentication/login");

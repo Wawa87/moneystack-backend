@@ -47,7 +47,7 @@ public class UserDAOImplTest {
     public void testFindById() {
         try (Connection connection = PGUtil.getDataSource().getConnection()) {
             connection.setAutoCommit(false);
-            UserDAOImpl userDAO =new UserDAOImpl(connection);
+            UserDAOImpl userDAO = new UserDAOImpl(connection);
 
             // Create the test user.
             User user = new User();
@@ -63,6 +63,8 @@ public class UserDAOImplTest {
             user.setLastName("User");
             user.setPhoneNumber("+16195554321");
 
+            user.setPasswordHash("passhash");
+
             // Save the test user and update the reference object with field values from insert (id, createAt).
             user = (userDAO.save(user)).get();
 
@@ -77,6 +79,51 @@ public class UserDAOImplTest {
             Assertions.assertEquals("Test", user1.get().getFirstName());
             Assertions.assertEquals("User", user1.get().getLastName());
             Assertions.assertEquals("+16195554321", user1.get().getPhoneNumber());
+            Assertions.assertEquals("passhash", user1.get().getPasswordHash());
+
+            connection.rollback();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testFindByUserId() {
+        try (Connection connection = PGUtil.getDataSource().getConnection()) {
+            connection.setAutoCommit(false);
+            UserDAOImpl userDAO = new UserDAOImpl(connection);
+
+            // Create the test user.
+            User user = new User();
+            user.setUserId("testuser");
+
+            ArrayList<String> emails = new ArrayList<>();
+            emails.add("testuser@email1.com");
+            emails.add("testuser@email2.com");
+            emails.add("testuser@email3.com");
+            user.setEmails(emails);
+
+            user.setFirstName("Test");
+            user.setLastName("User");
+            user.setPhoneNumber("+16195554321");
+
+            user.setPasswordHash("passhash");
+
+            // Save the test user and update the reference object with field values from insert (id, createAt).
+            user = (userDAO.save(user)).get();
+
+            // Test the findById() method.
+            Optional<User> user1 = userDAO.findByUserId(user.getUserId());
+
+            Assertions.assertTrue(user1.isPresent());
+            Assertions.assertEquals("testuser", user1.get().getUserId());
+            Assertions.assertEquals("testuser@email1.com", user1.get().getEmails().get(0));
+            Assertions.assertEquals("testuser@email2.com", user1.get().getEmails().get(1));
+            Assertions.assertEquals("testuser@email3.com", user1.get().getEmails().get(2));
+            Assertions.assertEquals("Test", user1.get().getFirstName());
+            Assertions.assertEquals("User", user1.get().getLastName());
+            Assertions.assertEquals("+16195554321", user1.get().getPhoneNumber());
+            Assertions.assertEquals("passhash", user1.get().getPasswordHash());
 
             connection.rollback();
         } catch (SQLException e) {
@@ -111,11 +158,11 @@ public class UserDAOImplTest {
             emails1.add("testuser1@email1.com");
             emails1.add("testuser1@email2.com");
             emails1.add("testuser1@email3.com");
-            user.setEmails(emails1);
+            user1.setEmails(emails1);
 
-            user.setFirstName("Test1");
-            user.setLastName("User1");
-            user.setPhoneNumber("+16195554321");
+            user1.setFirstName("Test1");
+            user1.setLastName("User1");
+            user1.setPhoneNumber("+16195554321");
 
             user = (userDAO.save(user)).get();
             user1 = (userDAO.save(user1)).get();
@@ -157,6 +204,8 @@ public class UserDAOImplTest {
             user.setLastName("User");
             user.setPhoneNumber("+16195554321");
 
+            user.setPasswordHash("passhash");
+
             user = (userDAO.save(user)).get();
 
             // Update values on the User object.
@@ -170,6 +219,8 @@ public class UserDAOImplTest {
             user.setFirstName("Cosmo");
             user.setLastName("Kramer");
             user.setPhoneNumber("+18385554321");
+
+            user.setPasswordHash("passhash1");
 
             // Update the database record.
             int result = userDAO.update(user);
@@ -187,6 +238,7 @@ public class UserDAOImplTest {
             Assertions.assertEquals(user1.getLastName(), "Kramer");
             Assertions.assertEquals(user1.getPhoneNumber(), "+18385554321");
             Assertions.assertNotNull(user1.getUpdatedAt());
+            Assertions.assertEquals(user1.getPasswordHash(), "passhash1");
 
             connection.rollback();
         } catch (SQLException e) {

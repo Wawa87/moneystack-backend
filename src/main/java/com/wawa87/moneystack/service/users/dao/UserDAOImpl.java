@@ -32,8 +32,8 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public Optional<User> save(User user) {
         String sql = "INSERT INTO ms_users " +
-                "(user_id, emails, first_name, last_name, phone_number)" +
-                "VALUES (?, ?, ?, ?, ?) RETURNING id, created_at";
+                "(user_id, emails, first_name, last_name, phone_number, password_hash)" +
+                "VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, user.getUserId());
 
@@ -43,6 +43,7 @@ public class UserDAOImpl implements UserDAO {
             stmt.setString(3, user.getFirstName());
             stmt.setString(4, user.getLastName());
             stmt.setString(5, user.getPhoneNumber());
+            stmt.setString(6, user.getPasswordHash());
 
             try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
@@ -62,10 +63,29 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public Optional<User> findById(Long id) {
         String sql = "SELECT " +
-                "id, user_id, emails, first_name, last_name, phone_number, created_at, updated_at " +
+                "id, user_id, emails, first_name, last_name, phone_number, created_at, updated_at, password_hash " +
                 "FROM ms_users WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
+            try (ResultSet rs  = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapRow(rs));
+                }
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            logger.error("SQLException: ", e);
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Optional<User> findByUserId(String userId) {
+        String sql = "SELECT " +
+                "id, user_id, emails, first_name, last_name, phone_number, created_at, updated_at, password_hash " +
+                "FROM ms_users WHERE user_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, userId);
             try (ResultSet rs  = stmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapRow(rs));
@@ -97,7 +117,7 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public int update(User user) {
-        String sql = "UPDATE ms_users SET user_id=?, emails=?, first_name=?, last_name=?, phone_number=?, updated_at=? WHERE id=?";
+        String sql = "UPDATE ms_users SET user_id=?, emails=?, first_name=?, last_name=?, phone_number=?, updated_at=?, password_hash=? WHERE id=?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, user.getUserId());
 
@@ -113,7 +133,10 @@ public class UserDAOImpl implements UserDAO {
             String updatedAtStr = updatedAt.format(formatter).toString();
             stmt.setTimestamp(6, Timestamp.valueOf(updatedAt));
 
-            stmt.setLong(7, user.getId());
+            stmt.setString(7, user.getPasswordHash());
+
+            stmt.setLong(8, user.getId());
+
 
             return stmt.executeUpdate();
         } catch (SQLException e) {
@@ -166,6 +189,8 @@ public class UserDAOImpl implements UserDAO {
         if (rs.getString("updated_at") != null && rs.getString("updated_at").length() > 0) {
             user.setUpdatedAt(LocalDateTime.parse(rs.getString("updated_at"), formatter));
         }
+
+        user.setPasswordHash(rs.getString("password_hash"));
 
         return user;
     }

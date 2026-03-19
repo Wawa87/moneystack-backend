@@ -26,19 +26,15 @@ public class AuthenticationServlet extends HttpServlet {
         response.getWriter().println("AuthenticationServlet...");
         response.getWriter().println(username);
         response.getWriter().println(password);
-    }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         StringBuilder  stringBuilder = new StringBuilder();
+        System.out.println("=================" + request.getContentType());
 
         try (BufferedReader bufferedReader = request.getReader()) {
-            while (bufferedReader.readLine() != null) {
-                stringBuilder.append(bufferedReader.readLine());
-            }
+            bufferedReader.lines().forEach(line -> { stringBuilder.append(line);});
         }
 
-        System.out.println(stringBuilder.toString());
+        System.out.println("=======================================" + stringBuilder.toString());
 
         Gson gson = new Gson();
         AuthObject authObject = gson.fromJson(stringBuilder.toString(), AuthObject.class);
@@ -47,6 +43,18 @@ public class AuthenticationServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         response.getWriter().println("Username:" + authObject.getUsername());
         response.getWriter().println("Password:" + authObject.getPassword());
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String username =  request.getParameter("username");
+        String password = request.getParameter("password");
+
+        if (isValid(username, password)) {
+            String token = JwtUtil.generateToken(username);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"token\":\""+token+"\"}");
+        }
     }
 
      private class AuthObject {
@@ -68,5 +76,9 @@ public class AuthenticationServlet extends HttpServlet {
          public void setPassword(String password) {
              this.password = password;
          }
+     }
+
+     private boolean isValid(String username, String password) {
+         return username.equals("testuser") && password.equals("testpass");
      }
 }
