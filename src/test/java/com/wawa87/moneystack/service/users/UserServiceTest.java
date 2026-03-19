@@ -5,13 +5,12 @@ import com.wawa87.moneystack.service.users.dao.UserDAOImpl;
 import com.wawa87.moneystack.service.users.db.PGUtil;
 import com.wawa87.moneystack.service.users.models.User;
 import de.mkammerer.argon2.Argon2;
-import de.mkammerer.argon2.Argon2Factory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.ResourceLock;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Optional;
 
 public class UserServiceTest {
     @Test
@@ -63,6 +62,41 @@ public class UserServiceTest {
             );
 
             Assertions.assertTrue(userService.authenticate("testUser", "testpass"));
+
+            connection.rollback();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testChangePassword() {
+        try (Connection connection = PGUtil.getDataSource().getConnection()) {
+            connection.setAutoCommit(false);
+
+            UserDAOImpl userDAO = new UserDAOImpl(connection);
+            Argon2 argon2 = Argon2Util.getArgon2();
+            UserService userService = new UserService(userDAO, argon2);
+
+            User user = userService.register(
+                    "testUser",
+                    "testUser@email.com",
+                    "Test",
+                    "User",
+                    "testpass",
+                    "17602221111"
+            );
+
+            Assertions.assertTrue(userService.authenticate(user.getUserId(), "testpass"));
+
+            Assertions.assertFalse(userService.changePassword(user.getUserId(), "testbadoldpass", "newpass"));
+            Assertions.assertTrue(userService.changePassword(user.getUserId(), "testpass", "newpass"));
+
+            Optional<User> res = userService.getUser(user.getUserId());
+            Assertions.assertTrue(res.isPresent());
+
+            user = res.get();
+            Assertions.assertTrue(userService.authenticate(user.getUserId(), "newpass"));
 
             connection.rollback();
         } catch (SQLException e) {

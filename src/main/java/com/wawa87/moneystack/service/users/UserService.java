@@ -4,14 +4,9 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import com.wawa87.moneystack.service.users.dao.UserDAO;
-import com.wawa87.moneystack.service.users.dao.UserDAOImpl;
-import com.wawa87.moneystack.service.users.db.PGUtil;
 import com.wawa87.moneystack.service.users.models.User;
 import de.mkammerer.argon2.Argon2;
-import de.mkammerer.argon2.Argon2Factory;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -46,7 +41,7 @@ public class UserService {
 
         char[] passwordChar = password.toCharArray();
 
-        String hash = argon2.hash(22, 65536, 1, password);
+        String hash = hashPw(password);
 
         user.setPasswordHash(hash);
 
@@ -67,8 +62,26 @@ public class UserService {
         return false;
     }
 
-    // TODO: Implement changePassword method.
-    public void changePassword(String userId, String oldPassword, String newPassword) {
+    public boolean changePassword(String userId, String oldPassword, String newPassword) {
+        Optional<User> res = userDAO.findByUserId(userId);
+        if (res.isPresent()) {
+            if (argon2.verify(res.get().getPasswordHash(), oldPassword)) {
+                String updatePw = hashPw(newPassword);
+                User user = res.get();
+                user.setPasswordHash(updatePw);
+                userDAO.update(user);
+                return true;
+            }
+        }
+        return false;
+    }
 
+    public Optional<User> getUser(String userId) {
+        Optional<User> res = userDAO.findByUserId(userId);
+        return res;
+    }
+
+    private String hashPw(String password) {
+        return argon2.hash(22,  65536, 1, password);
     }
 }
