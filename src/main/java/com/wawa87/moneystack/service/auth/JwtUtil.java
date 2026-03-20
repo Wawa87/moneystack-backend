@@ -5,12 +5,13 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.wawa87.moneystack.App;
 
 import java.util.Date;
 
 public class JwtUtil {
-    private static final String SECRET = "a-long-secret";
-    private static final String ISSUER = "moneystack-auth";
+    private static final String SECRET = App.properties.getProperty("JWT_SECRET");
+    private static final String ISSUER = App.properties.getProperty("JWT_ISSUER");
     private static final long EXPIRATION_TIME = 3600_000; // 1 hour.
 
     private static final Algorithm ALGORITHM = Algorithm.HMAC256(SECRET);
