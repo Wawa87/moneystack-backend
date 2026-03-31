@@ -7,20 +7,19 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 public class MarcoServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(MarcoServlet.class);
 
     @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) {
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals("access_token")) {
-                    logger.info("pausing...");
-
                     String subject = JwtUtil.validateAndGetSubject(cookie.getValue());
-
-                    logger.info(subject);
+                    response.getWriter().print("MarcoServlet: " + subject);
                 }
             }
         }

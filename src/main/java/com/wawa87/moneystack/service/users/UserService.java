@@ -81,6 +81,14 @@ public class UserService {
         return res;
     }
 
+    public int updateUser(User user) {
+        return userDAO.update(user);
+    }
+
+    public int deleteUser(User user) {
+        return userDAO.delete(user);
+    }
+
     private String hashPw(String password) {
         return argon2.hash(22,  65536, 1, password);
     }

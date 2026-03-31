@@ -1,20 +1,23 @@
 package com.wawa87.moneystack;
 
-import com.wawa87.moneystack.service.auth.Argon2Util;
-import com.wawa87.moneystack.service.auth.AuthenticationServlet;
-import com.wawa87.moneystack.service.auth.MarcoServlet;
-import com.wawa87.moneystack.service.auth.RegistrationServlet;
+import com.wawa87.moneystack.service.app.AuthenticationFilter;
+import com.wawa87.moneystack.service.app.DashboardServlet;
+import com.wawa87.moneystack.service.app.ProfileServlet;
+import com.wawa87.moneystack.service.auth.*;
 import com.wawa87.moneystack.service.users.UserService;
 import com.wawa87.moneystack.service.users.dao.UserDAOImpl;
 import com.wawa87.moneystack.service.users.db.PGUtil;
 import de.mkammerer.argon2.Argon2;
+import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.EnumSet;
 import java.util.Properties;
 
 public class App {
@@ -46,12 +49,12 @@ public class App {
         context.setContextPath("/");
         server.setHandler(context);
 
-//        FilterHolder dispatcherFilter = new FilterHolder(new DispatcherFilter());
-//        context.addFilter(
-//                dispatcherFilter,
-//                "/*",
-//                EnumSet.of(DispatcherType.REQUEST)
-//        );
+        FilterHolder authenticationFilter = new FilterHolder(new AuthenticationFilter());
+        context.addFilter(
+                authenticationFilter,
+                "/*",
+                EnumSet.of(DispatcherType.REQUEST)
+        );
 
         ServletHolder authenticationServlet = new ServletHolder(new AuthenticationServlet(userService));
         context.addServlet(authenticationServlet, "/login");
@@ -61,6 +64,12 @@ public class App {
 
         ServletHolder marcoServlet = new ServletHolder(new MarcoServlet());
         context.addServlet(marcoServlet, "/marco");
+
+        ServletHolder dashboardServlet = new ServletHolder(new DashboardServlet(userService));
+        context.addServlet(dashboardServlet, "/");
+
+        ServletHolder profileServlet = new ServletHolder(new ProfileServlet(userService));
+        context.addServlet(profileServlet, "/profile");
 
         server.start();
         server.join();

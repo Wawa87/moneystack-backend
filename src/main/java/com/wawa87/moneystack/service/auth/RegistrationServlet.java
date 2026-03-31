@@ -23,7 +23,7 @@ public class RegistrationServlet extends HttpServlet {
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        StringBuilder  stringBuilder = new StringBuilder();
+        StringBuilder stringBuilder = new StringBuilder();
 
         try (BufferedReader bufferedReader = request.getReader()) {
             bufferedReader.lines().forEach(line -> { stringBuilder.append(line);});
@@ -45,10 +45,10 @@ public class RegistrationServlet extends HttpServlet {
 
         if (newUser != null) {
             response.setStatus(HttpServletResponse.SC_CREATED);
-            response.getWriter().println("Successfully registered user: " + newUser.getUserId());
+            response.getWriter().print("Successfully registered user: " + newUser.getUserId());
         } else {
             response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().println("Failed to register user: " + "newUserId");
+            response.getWriter().print("Failed to register user: " + "newUserId");
         }
     }
 

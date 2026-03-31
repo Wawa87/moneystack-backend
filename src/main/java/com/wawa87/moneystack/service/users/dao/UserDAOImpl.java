@@ -137,7 +137,6 @@ public class UserDAOImpl implements UserDAO {
 
             stmt.setLong(8, user.getId());
 
-
             return stmt.executeUpdate();
         } catch (SQLException e) {
             logger.error("SQLException: ", e);

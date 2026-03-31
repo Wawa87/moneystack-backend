@@ -22,7 +22,7 @@ public class AuthenticationServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        StringBuilder  stringBuilder = new StringBuilder();
+        StringBuilder stringBuilder = new StringBuilder();
 
         try (BufferedReader bufferedReader = request.getReader()) {
             bufferedReader.lines().forEach(line -> { stringBuilder.append(line);});
