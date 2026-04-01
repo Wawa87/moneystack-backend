@@ -1,12 +1,8 @@
 package com.wawa87.moneystack.service.app;
 
 import com.google.gson.Gson;
-import com.wawa87.moneystack.service.auth.AuthenticationServlet;
-import com.wawa87.moneystack.service.auth.JwtUtil;
-import com.wawa87.moneystack.service.auth.MarcoServlet;
 import com.wawa87.moneystack.service.users.UserService;
 import com.wawa87.moneystack.service.users.models.User;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,11 +12,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Optional;
 
-public class DashboardServlet extends HttpServlet {
-    private static final Logger logger = LoggerFactory.getLogger(DashboardServlet.class);
+public class HomeServlet extends HttpServlet {
+    private static final Logger logger = LoggerFactory.getLogger(HomeServlet.class);
     UserService userService;
 
-    public DashboardServlet(UserService userService) {
+    public HomeServlet(UserService userService) {
         this.userService = userService;
     }
 
@@ -46,7 +42,7 @@ public class DashboardServlet extends HttpServlet {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }
 
-    private class AppUser {
+    public class AppUser {
         private String userId;
         private String firstName;
         private String lastName;

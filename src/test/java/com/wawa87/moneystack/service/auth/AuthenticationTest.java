@@ -63,7 +63,6 @@ public class AuthenticationTest {
     @Test
     public void testLogin() throws SQLException {
         try (Connection connection = PGUtil.getDataSource().getConnection()) {
-//            connection.setAutoCommit(false);
             UserDAOImpl userDAO = new UserDAOImpl(connection);
             Argon2 argon2 = Argon2Util.getArgon2();
             UserService userService = new UserService(userDAO, argon2);
@@ -96,7 +95,7 @@ public class AuthenticationTest {
             String subject = JwtUtil.validateAndGetSubject(response.body());
             Assertions.assertEquals("testUser", subject);
 
-            int result = userDAO.delete(user);
+            int result = userService.deleteUser(user);
             System.out.println(result);
         } catch (Exception e) {
             e.printStackTrace();

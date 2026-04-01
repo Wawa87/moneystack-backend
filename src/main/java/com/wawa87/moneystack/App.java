@@ -1,7 +1,7 @@
 package com.wawa87.moneystack;
 
 import com.wawa87.moneystack.service.app.AuthenticationFilter;
-import com.wawa87.moneystack.service.app.DashboardServlet;
+import com.wawa87.moneystack.service.app.HomeServlet;
 import com.wawa87.moneystack.service.app.ProfileServlet;
 import com.wawa87.moneystack.service.auth.*;
 import com.wawa87.moneystack.service.users.UserService;
@@ -65,7 +65,7 @@ public class App {
         ServletHolder marcoServlet = new ServletHolder(new MarcoServlet());
         context.addServlet(marcoServlet, "/marco");
 
-        ServletHolder dashboardServlet = new ServletHolder(new DashboardServlet(userService));
+        ServletHolder dashboardServlet = new ServletHolder(new HomeServlet(userService));
         context.addServlet(dashboardServlet, "/");
 
         ServletHolder profileServlet = new ServletHolder(new ProfileServlet(userService));
