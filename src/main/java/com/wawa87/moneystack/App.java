@@ -2,6 +2,7 @@ package com.wawa87.moneystack;
 
 import com.wawa87.moneystack.service.app.AuthenticationFilter;
 import com.wawa87.moneystack.service.app.HomeServlet;
+import com.wawa87.moneystack.service.app.PreflightFilter;
 import com.wawa87.moneystack.service.app.ProfileServlet;
 import com.wawa87.moneystack.service.auth.*;
 import com.wawa87.moneystack.service.users.UserService;
@@ -9,10 +10,14 @@ import com.wawa87.moneystack.service.users.dao.UserDAOImpl;
 import com.wawa87.moneystack.service.users.db.PGUtil;
 import de.mkammerer.argon2.Argon2;
 import jakarta.servlet.DispatcherType;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -48,6 +53,13 @@ public class App {
                 new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
+
+        FilterHolder preflightFilter = new FilterHolder(new PreflightFilter());
+        context.addFilter(
+                preflightFilter,
+                "/*",
+                EnumSet.of(DispatcherType.REQUEST)
+        );
 
         FilterHolder authenticationFilter = new FilterHolder(new AuthenticationFilter());
         context.addFilter(

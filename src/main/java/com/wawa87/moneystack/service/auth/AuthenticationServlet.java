@@ -39,10 +39,13 @@ public class AuthenticationServlet extends HttpServlet {
 
             Cookie authCookie = new Cookie("access_token", token);
             authCookie.setHttpOnly(true);
-            authCookie.setSecure(false);      // only over HTTPS
+            authCookie.setSecure(true);      // only over HTTPS
             authCookie.setPath("/");         // or narrower path
             authCookie.setMaxAge(15 * 60);   // 15 minutes
-            response.addCookie(authCookie);
+//            response.addCookie(authCookie);
+
+            String cookieStr = "access_token=" + token + "; SameSite=None; Secure; HttpOnly; Path=/; Max-Age=900";
+            response.setHeader("Set-Cookie", cookieStr);
 
             response.setContentType("application/json");
             response.getWriter().write(token);
