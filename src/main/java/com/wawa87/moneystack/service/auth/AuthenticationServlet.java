@@ -2,6 +2,7 @@ package com.wawa87.moneystack.service.auth;
 
 import com.google.gson.Gson;
 import com.wawa87.moneystack.service.users.UserService;
+import com.wawa87.moneystack.service.users.models.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Optional;
 
 public class AuthenticationServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationServlet.class);
@@ -37,18 +40,28 @@ public class AuthenticationServlet extends HttpServlet {
         if (this.userService.authenticate(authObject.getUsername(), authObject.getPassword())) {
             String token = JwtUtil.generateToken(authObject.getUsername());
 
-            Cookie authCookie = new Cookie("access_token", token);
-            authCookie.setHttpOnly(true);
-            authCookie.setSecure(true);      // only over HTTPS
-            authCookie.setPath("/");         // or narrower path
-            authCookie.setMaxAge(15 * 60);   // 15 minutes
+//            Cookie authCookie = new Cookie("access_token", token);
+//            authCookie.setHttpOnly(true);
+//            authCookie.setSecure(true);      // only over HTTPS
+//            authCookie.setPath("/");         // or narrower path
+//            authCookie.setMaxAge(15 * 60);   // 15 minutes
 //            response.addCookie(authCookie);
 
             String cookieStr = "access_token=" + token + "; SameSite=None; Secure; HttpOnly; Path=/; Max-Age=900";
             response.setHeader("Set-Cookie", cookieStr);
-
             response.setContentType("application/json");
-            response.getWriter().write(token);
+
+            Optional<User> userRes = userService.getUser(authObject.username);
+            if (userRes.isPresent()) {
+                User user = userRes.get();
+                authObject.setFirstName(user.getFirstName());
+                authObject.setLastName(user.getLastName());
+                authObject.setEmails(user.getEmails());
+                authObject.setPhoneNumber(user.getPhoneNumber());
+                authObject.setPassword("");
+
+                response.getWriter().write(gson.toJson(authObject));
+            }
         } else {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Authentication failed for username: " + authObject.getUsername());
@@ -58,6 +71,11 @@ public class AuthenticationServlet extends HttpServlet {
      private class AuthObject {
          private String username;
          private String password;
+         private String firstName;
+         private String lastName;
+         private ArrayList<String> emails;
+         private String phoneNumber;
+
          public AuthObject(String username, String password) {
              this.username = username;
              this.password = password;
@@ -73,6 +91,38 @@ public class AuthenticationServlet extends HttpServlet {
          }
          public void setPassword(String password) {
              this.password = password;
+         }
+
+         public String getFirstName() {
+             return firstName;
+         }
+
+         public void setFirstName(String firstName) {
+             this.firstName = firstName;
+         }
+
+         public String getLastName() {
+             return lastName;
+         }
+
+         public void setLastName(String lastName) {
+             this.lastName = lastName;
+         }
+
+         public ArrayList<String> getEmails() {
+             return emails;
+         }
+
+         public void setEmails(ArrayList<String> emails) {
+             this.emails = emails;
+         }
+
+         public String getPhoneNumber() {
+             return phoneNumber;
+         }
+
+         public void setPhoneNumber(String phoneNumber) {
+             this.phoneNumber = phoneNumber;
          }
      }
 }

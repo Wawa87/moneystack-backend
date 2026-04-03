@@ -12,6 +12,7 @@ import de.mkammerer.argon2.Argon2;
 import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.server.handler.SecuredRedirectHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -53,8 +54,9 @@ public class App {
         sslContextFactory.setKeyStorePassword("localdev");
         sslContextFactory.setKeyManagerPassword("localdev");
 
-        // HTTP Configuration for SSL
+        // HTTPS Configuration for SSL
         HttpConfiguration httpsConfig = new HttpConfiguration();
+        httpsConfig.setSecureScheme("https");
         httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
         // SSL Connection Factory
