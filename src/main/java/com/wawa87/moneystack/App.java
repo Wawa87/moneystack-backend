@@ -46,6 +46,7 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
+//        Server server = new Server(8080);
         Server server = new Server();
 
         // SSL Context Configuration
@@ -104,6 +105,9 @@ public class App {
 
         ServletHolder profileServlet = new ServletHolder(new ProfileServlet(userService));
         context.addServlet(profileServlet, "/profile");
+
+        ServletHolder usernameValidationServlet = new ServletHolder(new UsernameValidationServlet(userService));
+        context.addServlet(usernameValidationServlet, "/profile/validateUsername/*");
 
         server.start();
         server.join();
