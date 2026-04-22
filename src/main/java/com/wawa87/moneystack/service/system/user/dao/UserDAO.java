@@ -1,6 +1,6 @@
-package com.wawa87.moneystack.service.users.dao;
+package com.wawa87.moneystack.service.system.user.dao;
 
-import com.wawa87.moneystack.service.users.models.User;
+import com.wawa87.moneystack.service.system.user.model.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,7 +11,7 @@ public interface UserDAO {
 
     // Read
     Optional<User> findById(Long id);
-    Optional<User> findByUserId(String userId);
+    Optional<User> findByUsername(String username);
     List<User> findAll();
 
     // Update

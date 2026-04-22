@@ -1,14 +1,11 @@
 package com.wawa87.moneystack.service.app;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.wawa87.moneystack.service.auth.Argon2Util;
-import com.wawa87.moneystack.service.auth.JwtUtil;
-import com.wawa87.moneystack.service.auth.RegistrationServlet;
-import com.wawa87.moneystack.service.users.UserService;
-import com.wawa87.moneystack.service.users.dao.UserDAOImpl;
-import com.wawa87.moneystack.service.users.db.PGUtil;
-import com.wawa87.moneystack.service.users.models.User;
+import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
+import com.wawa87.moneystack.service.system.user.db.PGUtil;
+import com.wawa87.moneystack.service.system.user.model.User;
 import de.mkammerer.argon2.Argon2;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

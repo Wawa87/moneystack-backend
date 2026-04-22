@@ -1,8 +1,8 @@
 package com.wawa87.moneystack.service.app;
 
 import com.google.gson.Gson;
-import com.wawa87.moneystack.service.users.UserService;
-import com.wawa87.moneystack.service.users.models.User;
+import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.model.User;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,7 +26,7 @@ public class HomeServlet extends HttpServlet {
         if (userRes.isPresent()) {
             User currentUser = userRes.get();
             AppUser appUser = new AppUser();
-            appUser.setUserId(currentUser.getUserId());
+            appUser.setUserId(currentUser.getUsername());
             appUser.setFirstName(currentUser.getFirstName());
             appUser.setLastName(currentUser.getLastName());
             appUser.setPhoneNumber(currentUser.getPhoneNumber());

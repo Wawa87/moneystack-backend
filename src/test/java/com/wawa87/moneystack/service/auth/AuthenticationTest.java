@@ -1,9 +1,9 @@
 package com.wawa87.moneystack.service.auth;
 
-import com.wawa87.moneystack.service.users.UserService;
-import com.wawa87.moneystack.service.users.dao.UserDAOImpl;
-import com.wawa87.moneystack.service.users.db.PGUtil;
-import com.wawa87.moneystack.service.users.models.User;
+import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
+import com.wawa87.moneystack.service.system.user.db.PGUtil;
+import com.wawa87.moneystack.service.system.user.model.User;
 import de.mkammerer.argon2.Argon2;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Optional;
 
 public class AuthenticationTest {
@@ -47,7 +46,7 @@ public class AuthenticationTest {
             connection.setAutoCommit(false);
             UserDAOImpl userDAO = new UserDAOImpl(connection);
 
-            Optional<User> userRes = userDAO.findByUserId("testUser");
+            Optional<User> userRes = userDAO.findByUsername("testUser");
             if (userRes.isPresent()) {
                 User user = userRes.get();
                 userDAO.delete(user);

@@ -1,7 +1,7 @@
 package com.wawa87.moneystack.service.auth;
 
-import com.wawa87.moneystack.service.users.UserService;
-import com.wawa87.moneystack.service.users.models.User;
+import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;

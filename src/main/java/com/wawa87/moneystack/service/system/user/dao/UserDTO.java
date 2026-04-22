@@ -1,10 +1,10 @@
-package com.wawa87.moneystack.service.users.dao;
+package com.wawa87.moneystack.service.system.user.dao;
 
 import java.util.ArrayList;
 
 public class UserDTO {
     private Long id;
-    private String userId;
+    private String username;
     private ArrayList<String> emails;
     private String firstName;
     private String lastName;
@@ -18,12 +18,12 @@ public class UserDTO {
         this.id = id;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public ArrayList<String> getEmails() {

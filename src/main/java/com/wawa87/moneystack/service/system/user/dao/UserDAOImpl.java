@@ -1,6 +1,6 @@
-package com.wawa87.moneystack.service.users.dao;
+package com.wawa87.moneystack.service.system.user.dao;
 
-import com.wawa87.moneystack.service.users.models.User;
+import com.wawa87.moneystack.service.system.user.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.core.type.TypeReference;
@@ -32,10 +32,10 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public Optional<User> save(User user) {
         String sql = "INSERT INTO ms_users " +
-                "(user_id, emails, first_name, last_name, phone_number, password_hash)" +
+                "(username, emails, first_name, last_name, phone_number, password_hash)" +
                 "VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, user.getUserId());
+            stmt.setString(1, user.getUsername());
 
             String json = mapper.writeValueAsString(user.getEmails());
             stmt.setString(2, json);
@@ -63,7 +63,7 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public Optional<User> findById(Long id) {
         String sql = "SELECT " +
-                "id, user_id, emails, first_name, last_name, phone_number, created_at, updated_at, password_hash " +
+                "id, username, emails, first_name, last_name, phone_number, created_at, updated_at, password_hash " +
                 "FROM ms_users WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
@@ -80,12 +80,12 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public Optional<User> findByUserId(String userId) {
+    public Optional<User> findByUsername(String username) {
         String sql = "SELECT " +
-                "id, user_id, emails, first_name, last_name, phone_number, created_at, updated_at, password_hash " +
+                "id, username, emails, first_name, last_name, phone_number, created_at, updated_at, password_hash " +
                 "FROM ms_users WHERE user_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, userId);
+            stmt.setString(1, username);
             try (ResultSet rs  = stmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapRow(rs));
@@ -117,9 +117,9 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public int update(User user) {
-        String sql = "UPDATE ms_users SET user_id=?, emails=?, first_name=?, last_name=?, phone_number=?, updated_at=?, password_hash=? WHERE id=?";
+        String sql = "UPDATE ms_users SET username=?, emails=?, first_name=?, last_name=?, phone_number=?, updated_at=?, password_hash=? WHERE id=?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, user.getUserId());
+            stmt.setString(1, user.getUsername());
 
             String json = mapper.writeValueAsString(user.getEmails());
             stmt.setString(2, json);
@@ -171,7 +171,7 @@ public class UserDAOImpl implements UserDAO {
     private User mapRow(ResultSet rs) throws SQLException {
         User user = new User();
         user.setId(rs.getLong("id"));
-        user.setUserId(rs.getString("user_id"));
+        user.setUsername(rs.getString("username"));
 
         String json = rs.getString("emails");
         ObjectMapper objectMapper = new ObjectMapper();

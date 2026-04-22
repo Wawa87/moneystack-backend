@@ -1,7 +1,7 @@
 package com.wawa87.moneystack.service.auth;
 
-import com.wawa87.moneystack.service.users.UserService;
-import com.wawa87.moneystack.service.users.models.User;
+import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.model.User;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,7 +28,7 @@ public class DeletionServlet extends HttpServlet {
             int result = userService.deleteUser(user);
 
             response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().write("User deleted: " + user.getUserId());
+            response.getWriter().write("User deleted: " + user.getUsername());
             return;
         }
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

@@ -1,4 +1,4 @@
-package com.wawa87.moneystack.service.users.dao;
+package com.wawa87.moneystack.service.system.user.dao;
 
 import org.junit.jupiter.api.Test;
 

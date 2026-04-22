@@ -1,7 +1,8 @@
-package com.wawa87.moneystack.service.users.dao;
+package com.wawa87.moneystack.service.system.user.dao;
 
-import com.wawa87.moneystack.service.users.db.PGUtil;
-import com.wawa87.moneystack.service.users.models.User;
+import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
+import com.wawa87.moneystack.service.system.user.db.PGUtil;
+import com.wawa87.moneystack.service.system.user.model.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +21,7 @@ public class UserDAOImplTest {
 
             // Create the test User.
             User user = new User();
-            user.setUserId("testuser");
+            user.setUsername("testuser");
 
             ArrayList<String> emails = new ArrayList<>();
             emails.add("testuser@email1.com");
@@ -51,7 +52,7 @@ public class UserDAOImplTest {
 
             // Create the test user.
             User user = new User();
-            user.setUserId("testuser");
+            user.setUsername("testuser");
 
             ArrayList<String> emails = new ArrayList<>();
             emails.add("testuser@email1.com");
@@ -72,7 +73,7 @@ public class UserDAOImplTest {
             Optional<User> user1 = userDAO.findById(user.getId());
 
             Assertions.assertTrue(user1.isPresent());
-            Assertions.assertEquals("testuser", user1.get().getUserId());
+            Assertions.assertEquals("testuser", user1.get().getUsername());
             Assertions.assertEquals("testuser@email1.com", user1.get().getEmails().get(0));
             Assertions.assertEquals("testuser@email2.com", user1.get().getEmails().get(1));
             Assertions.assertEquals("testuser@email3.com", user1.get().getEmails().get(2));
@@ -88,14 +89,14 @@ public class UserDAOImplTest {
     }
 
     @Test
-    public void testFindByUserId() {
+    public void testFindByUsername() {
         try (Connection connection = PGUtil.getDataSource().getConnection()) {
             connection.setAutoCommit(false);
             UserDAOImpl userDAO = new UserDAOImpl(connection);
 
             // Create the test user.
             User user = new User();
-            user.setUserId("testuser");
+            user.setUsername("testuser");
 
             ArrayList<String> emails = new ArrayList<>();
             emails.add("testuser@email1.com");
@@ -113,10 +114,10 @@ public class UserDAOImplTest {
             user = (userDAO.save(user)).get();
 
             // Test the findById() method.
-            Optional<User> user1 = userDAO.findByUserId(user.getUserId());
+            Optional<User> user1 = userDAO.findByUsername(user.getUsername());
 
             Assertions.assertTrue(user1.isPresent());
-            Assertions.assertEquals("testuser", user1.get().getUserId());
+            Assertions.assertEquals("testuser", user1.get().getUsername());
             Assertions.assertEquals("testuser@email1.com", user1.get().getEmails().get(0));
             Assertions.assertEquals("testuser@email2.com", user1.get().getEmails().get(1));
             Assertions.assertEquals("testuser@email3.com", user1.get().getEmails().get(2));
@@ -139,7 +140,7 @@ public class UserDAOImplTest {
 
             // Create test Users.
             User user = new User();
-            user.setUserId("testuser");
+            user.setUsername("testuser");
 
             ArrayList<String> emails = new ArrayList<>();
             emails.add("testuser@email1.com");
@@ -152,7 +153,7 @@ public class UserDAOImplTest {
             user.setPhoneNumber("+16195554321");
 
             User user1 = new User();
-            user1.setUserId("testuser1");
+            user1.setUsername("testuser1");
 
             ArrayList<String> emails1 = new ArrayList<>();
             emails1.add("testuser1@email1.com");
@@ -175,8 +176,8 @@ public class UserDAOImplTest {
             User resUser = users.getFirst();
             User resUser1 = users.getLast();
 
-            Assertions.assertEquals(user.getUserId(), resUser.getUserId());
-            Assertions.assertEquals(user1.getUserId(), resUser1.getUserId());
+            Assertions.assertEquals(user.getUsername(), resUser.getUsername());
+            Assertions.assertEquals(user1.getUsername(), resUser1.getUsername());
 
             connection.rollback();
         } catch (SQLException e) {
@@ -192,7 +193,7 @@ public class UserDAOImplTest {
 
             // Create test Users.
             User user = new User();
-            user.setUserId("testuser");
+            user.setUsername("testuser");
 
             ArrayList<String> emails = new ArrayList<>();
             emails.add("testuser@email1.com");
@@ -209,7 +210,7 @@ public class UserDAOImplTest {
             user = (userDAO.save(user)).get();
 
             // Update values on the User object.
-            user.setUserId("ckramer");
+            user.setUsername("ckramer");
 
             emails.clear();
             emails.add("ckramer@email1.com");
@@ -233,7 +234,7 @@ public class UserDAOImplTest {
             User user1 = oUser1.get();
 
             Assertions.assertEquals(user1.getId(), user.getId());
-            Assertions.assertEquals(user1.getUserId(), "ckramer");
+            Assertions.assertEquals(user1.getUsername(), "ckramer");
             Assertions.assertEquals(user1.getFirstName(), "Cosmo");
             Assertions.assertEquals(user1.getLastName(), "Kramer");
             Assertions.assertEquals(user1.getPhoneNumber(), "+18385554321");
@@ -254,7 +255,7 @@ public class UserDAOImplTest {
 
             // Create test Users.
             User user = new User();
-            user.setUserId("testuser");
+            user.setUsername("testuser");
 
             ArrayList<String> emails = new ArrayList<>();
             emails.add("testuser@email1.com");
@@ -292,7 +293,7 @@ public class UserDAOImplTest {
 
             // Create test Users.
             User user = new User();
-            user.setUserId("testuser");
+            user.setUsername("testuser");
 
             ArrayList<String> emails = new ArrayList<>();
             emails.add("testuser@email1.com");

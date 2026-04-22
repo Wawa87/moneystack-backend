@@ -1,11 +1,11 @@
-package com.wawa87.moneystack.service.users.models;
+package com.wawa87.moneystack.service.system.user.model;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class User {
     private Long id;
-    private String userId;
+    private String username;
     private ArrayList<String> emails;
     private String firstName;
     private String lastName;
@@ -22,12 +22,12 @@ public class User {
         this.id = id;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public ArrayList<String> getEmails() {

@@ -1,8 +1,8 @@
 package com.wawa87.moneystack.service.auth;
 
 import com.google.gson.Gson;
-import com.wawa87.moneystack.service.users.UserService;
-import com.wawa87.moneystack.service.users.models.User;
+import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,7 +45,7 @@ public class RegistrationServlet extends HttpServlet {
 
         if (newUser != null) {
             response.setStatus(HttpServletResponse.SC_CREATED);
-            response.getWriter().print("Successfully registered user: " + newUser.getUserId());
+            response.getWriter().print("Successfully registered user: " + newUser.getUsername());
         } else {
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().print("Failed to register user: " + "newUserId");

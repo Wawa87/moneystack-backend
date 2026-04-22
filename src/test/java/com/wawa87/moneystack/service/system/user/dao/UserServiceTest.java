@@ -1,9 +1,9 @@
-package com.wawa87.moneystack.service.users;
+package com.wawa87.moneystack.service.system.user.dao;
 
 import com.wawa87.moneystack.service.auth.Argon2Util;
-import com.wawa87.moneystack.service.users.dao.UserDAOImpl;
-import com.wawa87.moneystack.service.users.db.PGUtil;
-import com.wawa87.moneystack.service.users.models.User;
+import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.db.PGUtil;
+import com.wawa87.moneystack.service.system.user.model.User;
 import de.mkammerer.argon2.Argon2;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,7 @@ public class UserServiceTest {
 
             Assertions.assertNotNull(user);
             Assertions.assertNotNull(user.getId());
-            Assertions.assertEquals(user.getUserId(), "testUser");
+            Assertions.assertEquals(user.getUsername(), "testUser");
             Assertions.assertEquals(user.getEmails().get(0), "testUser@email.com");
             Assertions.assertEquals(user.getFirstName(), "Test");
             Assertions.assertEquals(user.getLastName(), "User");
@@ -87,16 +87,16 @@ public class UserServiceTest {
                     "17602221111"
             );
 
-            Assertions.assertTrue(userService.authenticate(user.getUserId(), "testpass"));
+            Assertions.assertTrue(userService.authenticate(user.getUsername(), "testpass"));
 
-            Assertions.assertFalse(userService.changePassword(user.getUserId(), "testbadoldpass", "newpass"));
-            Assertions.assertTrue(userService.changePassword(user.getUserId(), "testpass", "newpass"));
+            Assertions.assertFalse(userService.changePassword(user.getUsername(), "testbadoldpass", "newpass"));
+            Assertions.assertTrue(userService.changePassword(user.getUsername(), "testpass", "newpass"));
 
-            Optional<User> res = userService.getUser(user.getUserId());
+            Optional<User> res = userService.getUser(user.getUsername());
             Assertions.assertTrue(res.isPresent());
 
             user = res.get();
-            Assertions.assertTrue(userService.authenticate(user.getUserId(), "newpass"));
+            Assertions.assertTrue(userService.authenticate(user.getUsername(), "newpass"));
 
             connection.rollback();
         } catch (SQLException e) {
