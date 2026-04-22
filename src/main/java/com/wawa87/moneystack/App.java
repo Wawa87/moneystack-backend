@@ -3,7 +3,7 @@ package com.wawa87.moneystack;
 import com.wawa87.moneystack.service.app.AuthenticationFilter;
 import com.wawa87.moneystack.service.app.HomeServlet;
 import com.wawa87.moneystack.service.app.PreflightFilter;
-import com.wawa87.moneystack.service.app.ProfileServlet;
+import com.wawa87.moneystack.service.app.UserServlet;
 import com.wawa87.moneystack.service.auth.*;
 import com.wawa87.moneystack.service.users.UserService;
 import com.wawa87.moneystack.service.users.dao.UserDAOImpl;
@@ -12,7 +12,6 @@ import de.mkammerer.argon2.Argon2;
 import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.*;
-import org.eclipse.jetty.server.handler.SecuredRedirectHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -103,11 +102,11 @@ public class App {
         ServletHolder dashboardServlet = new ServletHolder(new HomeServlet(userService));
         context.addServlet(dashboardServlet, "/");
 
-        ServletHolder profileServlet = new ServletHolder(new ProfileServlet(userService));
-        context.addServlet(profileServlet, "/profile");
+        ServletHolder profileServlet = new ServletHolder(new UserServlet(userService));
+        context.addServlet(profileServlet, "/user/*");
 
         ServletHolder usernameValidationServlet = new ServletHolder(new UsernameValidationServlet(userService));
-        context.addServlet(usernameValidationServlet, "/profile/validateUsername/*");
+        context.addServlet(usernameValidationServlet, "/validateUsername/*");
 
         server.start();
         server.join();

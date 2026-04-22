@@ -1,7 +1,5 @@
 package com.wawa87.moneystack.service.auth;
 
-import com.google.gson.Gson;
-import com.wawa87.moneystack.service.app.ProfileServlet;
 import com.wawa87.moneystack.service.users.UserService;
 import com.wawa87.moneystack.service.users.models.User;
 import jakarta.servlet.ServletException;
@@ -12,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Locale;
 import java.util.Optional;
 
 public class UsernameValidationServlet extends HttpServlet {

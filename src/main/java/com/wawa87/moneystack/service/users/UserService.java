@@ -4,6 +4,7 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import com.wawa87.moneystack.service.users.dao.UserDAO;
+import com.wawa87.moneystack.service.users.dao.UserDTO;
 import com.wawa87.moneystack.service.users.models.User;
 import de.mkammerer.argon2.Argon2;
 
@@ -79,6 +80,21 @@ public class UserService {
     public Optional<User> getUser(String userId) {
         Optional<User> res = userDAO.findByUserId(userId);
         return res;
+    }
+
+    public Optional<UserDTO> getUserDTO(String userId) {
+        Optional<User> res = userDAO.findByUserId(userId);
+        UserDTO userDTO = new UserDTO();
+
+        if (res.isPresent()) {
+            User user = res.get();
+            userDTO.setUserId(user.getUserId());
+            userDTO.setFirstName(user.getFirstName());
+            userDTO.setLastName(user.getLastName());
+            userDTO.setEmails(user.getEmails());
+            userDTO.setPhoneNumber(user.getPhoneNumber());
+        }
+        return Optional.of(userDTO);
     }
 
     public int updateUser(User user) {

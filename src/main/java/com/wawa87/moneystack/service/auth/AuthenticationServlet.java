@@ -2,6 +2,7 @@ package com.wawa87.moneystack.service.auth;
 
 import com.google.gson.Gson;
 import com.wawa87.moneystack.service.users.UserService;
+import com.wawa87.moneystack.service.users.dao.UserDTO;
 import com.wawa87.moneystack.service.users.models.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -32,97 +34,39 @@ public class AuthenticationServlet extends HttpServlet {
         }
 
         Gson gson = new Gson();
-        AuthObject authObject = gson.fromJson(stringBuilder.toString(), AuthObject.class);
+        UserCredentials userCredentials = gson.fromJson(stringBuilder.toString(), UserCredentials.class);
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        if (this.userService.authenticate(authObject.getUsername(), authObject.getPassword())) {
-            String token = JwtUtil.generateToken(authObject.getUsername());
-
-//            Cookie authCookie = new Cookie("access_token", token);
-//            authCookie.setHttpOnly(true);
-//            authCookie.setSecure(true);      // only over HTTPS
-//            authCookie.setPath("/");         // or narrower path
-//            authCookie.setMaxAge(15 * 60);   // 15 minutes
-//            response.addCookie(authCookie);
+        if (this.userService.authenticate(userCredentials.username, userCredentials.password)) {
+            String token = JwtUtil.generateToken(userCredentials.username);
 
             String cookieStr = "access_token=" + token + "; SameSite=None; Secure; HttpOnly; Path=/; Max-Age=900";
             response.setHeader("Set-Cookie", cookieStr);
             response.setContentType("application/json");
 
-            Optional<User> userRes = userService.getUser(authObject.username);
+            Optional<UserDTO> userRes = userService.getUserDTO(userCredentials.username);
             if (userRes.isPresent()) {
-                User user = userRes.get();
-                authObject.setFirstName(user.getFirstName());
-                authObject.setLastName(user.getLastName());
-                authObject.setEmails(user.getEmails());
-                authObject.setPhoneNumber(user.getPhoneNumber());
-                authObject.setPassword("");
+                UserDTO userDTO = userRes.get();
 
-                response.getWriter().write(gson.toJson(authObject));
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write(gson.toJson(userDTO, UserDTO.class));
+                return;
             }
         } else {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Authentication failed for username: " + authObject.getUsername());
+            response.getWriter().write("Authentication failed for username: " + userCredentials.username);
+            return;
         }
+
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        response.getWriter().write("Bad URI or user not found.");
+        return;
     }
 
-     private class AuthObject {
-         private String username;
-         private String password;
-         private String firstName;
-         private String lastName;
-         private ArrayList<String> emails;
-         private String phoneNumber;
-
-         public AuthObject(String username, String password) {
-             this.username = username;
-             this.password = password;
-         }
-         public String getUsername() {
-             return username;
-         }
-         public void setUsername(String username) {
-             this.username = username;
-         }
-         public String getPassword() {
-             return password;
-         }
-         public void setPassword(String password) {
-             this.password = password;
-         }
-
-         public String getFirstName() {
-             return firstName;
-         }
-
-         public void setFirstName(String firstName) {
-             this.firstName = firstName;
-         }
-
-         public String getLastName() {
-             return lastName;
-         }
-
-         public void setLastName(String lastName) {
-             this.lastName = lastName;
-         }
-
-         public ArrayList<String> getEmails() {
-             return emails;
-         }
-
-         public void setEmails(ArrayList<String> emails) {
-             this.emails = emails;
-         }
-
-         public String getPhoneNumber() {
-             return phoneNumber;
-         }
-
-         public void setPhoneNumber(String phoneNumber) {
-             this.phoneNumber = phoneNumber;
-         }
-     }
+    private class UserCredentials {
+        private String username;
+        private String password;
+    }
 }
