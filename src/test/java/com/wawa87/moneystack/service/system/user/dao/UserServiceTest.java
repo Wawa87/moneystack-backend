@@ -2,7 +2,7 @@ package com.wawa87.moneystack.service.system.user.dao;
 
 import com.wawa87.moneystack.service.auth.Argon2Util;
 import com.wawa87.moneystack.service.system.user.UserService;
-import com.wawa87.moneystack.service.system.user.db.PGUtil;
+import com.wawa87.moneystack.service.system.db.PGUtil;
 import com.wawa87.moneystack.service.system.user.model.User;
 import de.mkammerer.argon2.Argon2;
 import org.junit.jupiter.api.Assertions;

@@ -1,4 +1,4 @@
-package com.wawa87.moneystack.service.system.category.model.dao;
+package com.wawa87.moneystack.service.system.category.dao;
 
 import com.wawa87.moneystack.service.system.category.model.Category;
 

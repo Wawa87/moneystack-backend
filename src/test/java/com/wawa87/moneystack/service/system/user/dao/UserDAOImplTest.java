@@ -1,7 +1,6 @@
 package com.wawa87.moneystack.service.system.user.dao;
 
-import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
-import com.wawa87.moneystack.service.system.user.db.PGUtil;
+import com.wawa87.moneystack.service.system.db.PGUtil;
 import com.wawa87.moneystack.service.system.user.model.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

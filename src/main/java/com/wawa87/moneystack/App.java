@@ -1,13 +1,12 @@
 package com.wawa87.moneystack;
 
-import com.wawa87.moneystack.service.app.AuthenticationFilter;
-import com.wawa87.moneystack.service.app.HomeServlet;
-import com.wawa87.moneystack.service.app.PreflightFilter;
-import com.wawa87.moneystack.service.app.UserServlet;
+import com.wawa87.moneystack.service.app.*;
 import com.wawa87.moneystack.service.auth.*;
+import com.wawa87.moneystack.service.system.category.CategoryService;
+import com.wawa87.moneystack.service.system.category.dao.CategoryDAOImpl;
 import com.wawa87.moneystack.service.system.user.UserService;
 import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
-import com.wawa87.moneystack.service.system.user.db.PGUtil;
+import com.wawa87.moneystack.service.system.db.PGUtil;
 import de.mkammerer.argon2.Argon2;
 import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.http.HttpVersion;
@@ -27,6 +26,7 @@ public class App {
     public static DataSource dataSource = PGUtil.getDataSource();
     public static Argon2 argon2 = Argon2Util.getArgon2();
     public static UserService userService;
+    public static CategoryService categoryService;
     public static Loader loader;
     public static Properties properties;
 
@@ -36,6 +36,9 @@ public class App {
 
             UserDAOImpl userDAO = new UserDAOImpl(connection);
             userService = new UserService(userDAO, argon2);
+
+            CategoryDAOImpl categoryDAO = new CategoryDAOImpl(connection);
+            categoryService = new CategoryService(categoryDAO);
 
             loader = new Loader();
             properties = loader.loadPropertiesFile("application.properties");
@@ -107,6 +110,9 @@ public class App {
 
         ServletHolder usernameValidationServlet = new ServletHolder(new UsernameValidationServlet(userService));
         context.addServlet(usernameValidationServlet, "/validateUsername/*");
+
+        ServletHolder categoryServlet = new ServletHolder(new CategoryServlet(categoryService));
+        context.addServlet(categoryServlet, "/category/*");
 
         server.start();
         server.join();

@@ -1,4 +1,4 @@
-package com.wawa87.moneystack.service.system.user.db;
+package com.wawa87.moneystack.service.system.db;
 
 import org.postgresql.ds.PGSimpleDataSource;
 

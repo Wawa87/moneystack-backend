@@ -83,7 +83,7 @@ public class UserDAOImpl implements UserDAO {
     public Optional<User> findByUsername(String username) {
         String sql = "SELECT " +
                 "id, username, emails, first_name, last_name, phone_number, created_at, updated_at, password_hash " +
-                "FROM ms_users WHERE user_id = ?";
+                "FROM ms_users WHERE username = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             try (ResultSet rs  = stmt.executeQuery()) {

@@ -1,7 +1,6 @@
-package com.wawa87.moneystack.service.system.category.model.dao;
+package com.wawa87.moneystack.service.system.category.dao;
 
 import com.wawa87.moneystack.service.system.category.model.Category;
-import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.ObjectMapper;
@@ -137,7 +136,23 @@ public class CategoryDAOImpl implements CategoryDAO {
 
     @Override
     public List<Category> findByUsername(String username) {
-        return List.of();
+        List<Category> categories = new ArrayList<>();
+        String sql = "SELECT ms_categories.* FROM ms_categories, ms_users " +
+                "WHERE ms_users.username = ? " +
+                "AND ms_categories.user_id = ms_users.id";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                while (resultSet.next()) {
+                    Category category = mapRow(resultSet);
+                    categories.add(category);
+                }
+                return categories;
+            }
+        } catch (SQLException e) {
+            logger.error("SQLException: " + e);
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
