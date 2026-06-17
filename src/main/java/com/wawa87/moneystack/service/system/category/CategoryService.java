@@ -3,7 +3,6 @@ package com.wawa87.moneystack.service.system.category;
 import com.wawa87.moneystack.service.system.category.dao.CategoryDAO;
 import com.wawa87.moneystack.service.system.category.dao.CategoryDTO;
 import com.wawa87.moneystack.service.system.category.model.Category;
-import de.mkammerer.argon2.Argon2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +28,7 @@ public class CategoryService {
             CategoryDTO categoryDTO = new CategoryDTO();
             categoryDTO.setId(item.getId());
             categoryDTO.setUserId(item.getUserId());
-            categoryDTO.setCategoryName(item.getCategoryName());
-            categoryDTO.setCreatedAt(item.getCreatedAt().toString());
+            categoryDTO.setName(item.getName());
 
             categoriesDTO.add(categoryDTO);
         });

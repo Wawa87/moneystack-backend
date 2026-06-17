@@ -1,6 +1,6 @@
-package com.wawa87.moneystack.service.system.category.model;
+package com.wawa87.moneystack.service.system.budget.model;
 
-public class Category {
+public class Budget {
     private Long id;
     private Long userId;
     private String name;

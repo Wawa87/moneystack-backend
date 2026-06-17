@@ -12,10 +12,9 @@ public interface CategoryDAO {
     // Read
     Optional<Category> findById(Long id);
     List<Category> findByName(String name);
-    List<Category> findByUserId(Long user_id);
-    List<Category> findByNameAndUserId(String name, Long user_id);
+    List<Category> findByUserId(Long userId);
+    List<Category> findByNameAndUserId(String name, Long userId);
     List<Category> findByUsername(String username);
-    List<Category> findByNameAndUsername(String name, String username);
 
     // Update
     int update(Category category);

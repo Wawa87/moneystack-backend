@@ -9,7 +9,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
@@ -27,24 +26,28 @@ public class CategoryDAOImpl implements CategoryDAO {
 
     private final Connection connection;
 
+    private static final String TABLE = "ms_categories";
+    private static final String F_ID = "id";
+    private static final String F_USER_ID = "user_id";
+    private static final String F_NAME = "name";
+
     public CategoryDAOImpl(Connection connection) {
         this.connection = connection;
     }
 
     @Override
     public Optional<Category> save(Category category) {
-        String sql = "INSERT INTO ms_categories " +
-                "(user_id, category_name)" +
-                "VALUES(?, ?) RETURNING id, created_at";
+        String sql = "INSERT INTO " + TABLE + " ("
+        + F_USER_ID + ", "
+        + F_NAME + ") VALUES(?, ?) RETURNING " + F_ID;
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, category.getUserId());
-            stmt.setString(2, category.getCategoryName());
+            stmt.setString(2, category.getName());
 
             try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
                     category.setId(resultSet.getLong(1));
-                    LocalDateTime createdAt = LocalDateTime.parse(resultSet.getString("created_at"), formatter);
-                    category.setCreatedAt(createdAt);
                     return Optional.of(category);
                 }
                 return Optional.empty();
@@ -57,8 +60,8 @@ public class CategoryDAOImpl implements CategoryDAO {
 
     @Override
     public Optional<Category> findById(Long id) {
-        String sql = "SELECT * " +
-                "FROM ms_categories WHERE id = ?";
+        String sql = "SELECT * FROM " + TABLE + " WHERE " + F_ID + "=?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet resultSet = stmt.executeQuery()) {
@@ -76,8 +79,8 @@ public class CategoryDAOImpl implements CategoryDAO {
     @Override
     public List<Category> findByName(String name) {
         List<Category> categories = new ArrayList<>();
-        String sql = "SELECT * " +
-                "FROM ms_categories WHERE LOWER(category_name) LIKE LOWER(?)";
+        String sql = "SELECT * FROM " + TABLE + " WHERE LOWER(" + F_NAME + ") LIKE LOWER(?)";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, "%" + name + "%");
             try (ResultSet resultSet = stmt.executeQuery()) {
@@ -96,8 +99,8 @@ public class CategoryDAOImpl implements CategoryDAO {
     @Override
     public List<Category> findByUserId(Long user_id) {
         List<Category> categories = new ArrayList<>();
-        String sql = "SELECT * " +
-                "FROM ms_categories WHERE user_id=?";
+        String sql = "SELECT * FROM " + TABLE + " WHERE " + F_USER_ID + "=?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, user_id);
             try (ResultSet resultSet = stmt.executeQuery()) {
@@ -114,12 +117,12 @@ public class CategoryDAOImpl implements CategoryDAO {
     }
 
     @Override
-    public List<Category> findByNameAndUserId(String name, Long user_id) {
+    public List<Category> findByNameAndUserId(String name, Long userId) {
         List<Category> categories = new ArrayList<>();
-        String sql = "SELECT * " +
-                "FROM ms_categories WHERE user_id=? AND LOWER(category_name) LIKE LOWER(?)";
+        String sql = "SELECT * FROM " + TABLE + " WHERE " + F_USER_ID + "=? AND LOWER(" + F_NAME + ") LIKE LOWER(?)";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, user_id);
+            stmt.setLong(1, userId);
             stmt.setString(2, "%" + name + "%");
             try (ResultSet resultSet = stmt.executeQuery()) {
                 while (resultSet.next()) {
@@ -137,9 +140,8 @@ public class CategoryDAOImpl implements CategoryDAO {
     @Override
     public List<Category> findByUsername(String username) {
         List<Category> categories = new ArrayList<>();
-        String sql = "SELECT ms_categories.* FROM ms_categories, ms_users " +
-                "WHERE ms_users.username = ? " +
-                "AND ms_categories.user_id = ms_users.id";
+        String sql = "SELECT " + TABLE + ".* FROM " + TABLE + ", ms_users WHERE ms_users.username = ? AND " + TABLE + ".user_id = ms_users.id";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             try (ResultSet resultSet = stmt.executeQuery()) {
@@ -156,16 +158,12 @@ public class CategoryDAOImpl implements CategoryDAO {
     }
 
     @Override
-    public List<Category> findByNameAndUsername(String name, String username) {
-        return List.of();
-    }
-
-    @Override
     public int update(Category category) {
-        String sql = "UPDATE ms_categories SET user_id=?, category_name=? WHERE id=?";
+        String sql = "UPDATE " + TABLE + " SET " + F_USER_ID + "=?, " + F_NAME + "=? WHERE " + F_ID + "=?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, category.getUserId());
-            stmt.setString(2, category.getCategoryName());
+            stmt.setString(2, category.getName());
             stmt.setLong(3, category.getId());
 
             return stmt.executeUpdate();
@@ -177,7 +175,8 @@ public class CategoryDAOImpl implements CategoryDAO {
 
     @Override
     public int deleteById(Long id) {
-        String sql = "DELETE FROM ms_categories WHERE id=?";
+        String sql = "DELETE FROM " + TABLE + " WHERE " + F_ID + "=?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
 
@@ -192,8 +191,7 @@ public class CategoryDAOImpl implements CategoryDAO {
         Category category = new Category();
         category.setId(resultSet.getLong("id"));
         category.setUserId(resultSet.getLong("user_id"));
-        category.setCategoryName(resultSet.getString("category_name"));
-        category.setCreatedAt(LocalDateTime.parse(resultSet.getString("created_at"), formatter));
+        category.setName(resultSet.getString("name"));
 
         return category;
     }

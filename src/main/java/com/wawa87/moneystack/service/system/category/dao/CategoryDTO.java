@@ -1,12 +1,9 @@
 package com.wawa87.moneystack.service.system.category.dao;
 
-import java.time.LocalDateTime;
-
 public class CategoryDTO {
     private Long id;
     private Long userId;
-    private String categoryName;
-    private String createdAt;
+    private String name;
 
     public Long getId() {
         return id;
@@ -24,19 +21,11 @@ public class CategoryDTO {
         this.userId = userId;
     }
 
-    public String getCategoryName() {
-        return categoryName;
+    public String getName() {
+        return name;
     }
 
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
-
-    public String getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(String createdAt) {
-        this.createdAt = createdAt;
+    public void setName(String name) {
+        this.name = name;
     }
 }

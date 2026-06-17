@@ -25,15 +25,32 @@ public class UserDAOImpl implements UserDAO {
 
     private final Connection connection;
 
+    private static final String TABLE = "ms_users";
+    private static final String F_ID = "id";
+    private static final String F_USERNAME = "username";
+    private static final String F_EMAILS = "emails";
+    private static final String F_FIRST_NAME = "first_name";
+    private static final String F_LAST_NAME = "last_name";
+    private static final String F_PHONE_NUMBER = "phone_number";
+    private static final String F_PASSWORD_HASH = "password_hash";
+    private static final String F_CREATED_AT = "created_at";
+    private static final String F_UPDATED_AT = "updated_at";
+
     public UserDAOImpl(Connection connection) {
         this.connection = connection;
     }
 
     @Override
     public Optional<User> save(User user) {
-        String sql = "INSERT INTO ms_users " +
-                "(username, emails, first_name, last_name, phone_number, password_hash)" +
-                "VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at";
+        String sql = "INSERT INTO " + TABLE + " ("
+                + F_USERNAME + ","
+                + F_EMAILS + ","
+                + F_FIRST_NAME + ","
+                + F_LAST_NAME + ","
+                + F_PHONE_NUMBER + ","
+                + F_PASSWORD_HASH
+                + ") VALUES (?, ?, ?, ?, ?, ?) RETURNING " + F_ID + ", " + F_CREATED_AT;
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, user.getUsername());
 
@@ -62,9 +79,8 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public Optional<User> findById(Long id) {
-        String sql = "SELECT " +
-                "id, username, emails, first_name, last_name, phone_number, created_at, updated_at, password_hash " +
-                "FROM ms_users WHERE id = ?";
+        String sql = "SELECT * FROM " + TABLE + " WHERE " + F_ID + "=?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet rs  = stmt.executeQuery()) {
@@ -81,9 +97,8 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public Optional<User> findByUsername(String username) {
-        String sql = "SELECT " +
-                "id, username, emails, first_name, last_name, phone_number, created_at, updated_at, password_hash " +
-                "FROM ms_users WHERE username = ?";
+        String sql = "SELECT * FROM " + TABLE + " WHERE " + F_USERNAME + "=?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             try (ResultSet rs  = stmt.executeQuery()) {
@@ -100,7 +115,8 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public List<User> findAll() {
-        String sql = "SELECT * FROM ms_users";
+        String sql = "SELECT * FROM " + TABLE;
+
         List<User> users = new ArrayList<>();
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             try (ResultSet rs = stmt.executeQuery()) {
@@ -117,7 +133,15 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public int update(User user) {
-        String sql = "UPDATE ms_users SET username=?, emails=?, first_name=?, last_name=?, phone_number=?, updated_at=?, password_hash=? WHERE id=?";
+        String sql = "UPDATE " + TABLE + " SET "
+            + F_USERNAME + "=?,"
+            + F_EMAILS + "=?,"
+            + F_FIRST_NAME + "=?,"
+            + F_LAST_NAME + "=?,"
+            + F_PHONE_NUMBER + "=?,"
+            + F_UPDATED_AT + "=?,"
+            + F_PASSWORD_HASH + "=? WHERE " + F_ID + "=?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, user.getUsername());
 
@@ -146,7 +170,8 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public int deleteById(Long id) {
-        String sql = "DELETE FROM ms_users WHERE id = ?";
+        String sql = "DELETE FROM " + TABLE + " WHERE " + F_ID + "= ?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
             return stmt.executeUpdate();
@@ -158,7 +183,8 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public int delete(User user) {
-        String sql = "DELETE FROM ms_users WHERE id = ?";
+        String sql = "DELETE FROM " + TABLE + " WHERE " + F_ID + "= ?";
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, user.getId());
             return stmt.executeUpdate();
