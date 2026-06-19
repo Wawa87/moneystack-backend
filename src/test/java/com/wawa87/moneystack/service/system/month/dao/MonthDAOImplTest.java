@@ -3,11 +3,8 @@ package com.wawa87.moneystack.service.system.month.dao;
 import com.wawa87.moneystack.service.system.budget.dao.BudgetDAO;
 import com.wawa87.moneystack.service.system.budget.dao.BudgetDAOImpl;
 import com.wawa87.moneystack.service.system.budget.model.Budget;
-import com.wawa87.moneystack.service.system.category.dao.CategoryDAOImpl;
-import com.wawa87.moneystack.service.system.category.model.Category;
 import com.wawa87.moneystack.service.system.db.PGUtil;
 import com.wawa87.moneystack.service.system.month.model.Month;
-import com.wawa87.moneystack.service.system.subcategory.dao.SubcategoryDAOImpl;
 import com.wawa87.moneystack.service.system.user.dao.UserDAO;
 import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
 import com.wawa87.moneystack.service.system.user.model.User;
@@ -20,7 +17,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Year;
 import java.util.ArrayList;
-import java.util.Optional;
+import java.util.List;
 
 public class MonthDAOImplTest {
     private Connection connection;
@@ -86,5 +83,118 @@ public class MonthDAOImplTest {
         month0 = this.monthDAO.save(month0).get();
 
         Assertions.assertTrue(month0.getId() > 0);
+    }
+
+    @Test
+    public void testFindById() {
+        User user = this.userDAO.findByUsername("cosmo").get();
+        Budget budget = this.budgetDAO.findByUsername(user.getUsername()).get(0);
+
+        Month month0 = new Month();
+        month0.setBudgetId(budget.getId());
+        month0.setYear(Year.of(2026));
+        month0.setMonth(java.time.Month.of(3));
+        month0.setMonth(java.time.Month.MARCH);
+
+        month0 = this.monthDAO.save(month0).get();
+
+        Month month1 = new Month();
+        month1.setBudgetId(budget.getId());
+        month1.setYear(Year.of(2026));
+        month1.setMonth(java.time.Month.of(3));
+        month1.setMonth(java.time.Month.MARCH);
+
+        month1 = this.monthDAO.save(month1).get();
+
+        Month month1test = monthDAO.findById(month1.getId()).get();
+
+        Assertions.assertEquals(month1.getMonth(), month1test.getMonth());
+    }
+
+    @Test
+    public void testFindByBudgetId() {
+        User user = this.userDAO.findByUsername("cosmo").get();
+        Budget budget = this.budgetDAO.findByUsername(user.getUsername()).get(0);
+
+        Month month0 = new Month();
+        month0.setBudgetId(budget.getId());
+        month0.setYear(Year.of(2026));
+        month0.setMonth(java.time.Month.of(3));
+        month0.setMonth(java.time.Month.MARCH);
+
+        month0 = this.monthDAO.save(month0).get();
+
+        Month month1 = new Month();
+        month1.setBudgetId(budget.getId());
+        month1.setYear(Year.of(2026));
+        month1.setMonth(java.time.Month.of(3));
+        month1.setMonth(java.time.Month.MARCH);
+
+        month1 = this.monthDAO.save(month1).get();
+
+        List<Month> months = monthDAO.findByBudgetId(budget.getId());
+
+        Assertions.assertEquals(2, months.size());
+    }
+
+    @Test
+    public void testUpdate() {
+        User user = this.userDAO.findByUsername("cosmo").get();
+        Budget budget = this.budgetDAO.findByUsername(user.getUsername()).get(0);
+
+        Month month0 = new Month();
+        month0.setBudgetId(budget.getId());
+        month0.setYear(Year.of(2026));
+        month0.setMonth(java.time.Month.of(3));
+        month0.setMonth(java.time.Month.MARCH);
+
+        month0 = this.monthDAO.save(month0).get();
+
+        month0.setMonth(java.time.Month.APRIL);
+        monthDAO.update(month0);
+
+        Month month0test = monthDAO.findById(month0.getId()).get();
+
+        Assertions.assertEquals(java.time.Month.APRIL, month0test.getMonth());
+    }
+
+    @Test
+    public void testDeleteById() {
+        User user = this.userDAO.findByUsername("cosmo").get();
+        Budget budget = this.budgetDAO.findByUsername(user.getUsername()).get(0);
+
+        Month month0 = new Month();
+        month0.setBudgetId(budget.getId());
+        month0.setYear(Year.of(2026));
+        month0.setMonth(java.time.Month.of(3));
+        month0.setMonth(java.time.Month.MARCH);
+
+        month0 = this.monthDAO.save(month0).get();
+
+        monthDAO.deleteById(month0.getId());
+
+        List<Month> months = monthDAO.findByBudgetId(budget.getId());
+
+        Assertions.assertEquals(0, months.size());
+    }
+
+    @Test
+    public void testDelete() {
+        User user = this.userDAO.findByUsername("cosmo").get();
+        Budget budget = this.budgetDAO.findByUsername(user.getUsername()).get(0);
+
+        Month month0 = new Month();
+        month0.setBudgetId(budget.getId());
+        month0.setYear(Year.of(2026));
+        month0.setMonth(java.time.Month.of(3));
+        month0.setMonth(java.time.Month.MARCH);
+
+        month0 = this.monthDAO.save(month0).get();
+
+        monthDAO.delete(month0);
+
+        List<Month> months = monthDAO.findByBudgetId(budget.getId());
+
+        Assertions.assertEquals(0, months.size());
     }
 }

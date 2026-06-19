@@ -8,18 +8,22 @@ import org.slf4j.LoggerFactory;
 import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class TransactionDAOImpl implements TransactionDAO {
     private static final Logger logger = LoggerFactory.getLogger(TransactionDAOImpl.class);
+    private static final DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+            .appendPattern("yyyy-MM-dd HH:mm:ss")
+            .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)  // 0-9 digits, optional
+            .toFormatter();
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private final Connection connection;
@@ -45,19 +49,34 @@ public class TransactionDAOImpl implements TransactionDAO {
                 + F_SUBCATEGORY_ID + ","
                 + F_DESCRIPTION + ","
                 + F_TIMESTAMP + ","
-                + F_AMOUNT + ") VALUES(?, ?, ?, ?, ?, ?) RETURNING " + F_ID;
+                + F_AMOUNT + ") VALUES(?, ?, ?, ?, ?, ?) RETURNING " + F_ID + ", " + F_TIMESTAMP;
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, transaction.getMonthId());
-            stmt.setLong(2, transaction.getCategoryId());
-            stmt.setLong(3, transaction.getSubcategoryId());
+
+            if (transaction.getCategoryId() == null) {
+                stmt.setNull(2, Types.NULL);
+            } else {
+                stmt.setLong(2, transaction.getCategoryId());
+            }
+
+            if (transaction.getSubcategoryId() == null) {
+                stmt.setNull(3, Types.NULL);
+            } else {
+                stmt.setLong(3, transaction.getSubcategoryId());
+            }
+
             stmt.setString(4, transaction.getDescription());
-            stmt.setString(5, transaction.getTimestamp().toString());
+
+            String timestamp = transaction.getTimestamp().format(formatter).toString();
+            stmt.setTimestamp(5, Timestamp.valueOf(timestamp));
+
             stmt.setBigDecimal(6, transaction.getAmount());
 
             try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
                     transaction.setId(resultSet.getLong(1));
+                    transaction.setTimestamp(resultSet.getTimestamp(2).toLocalDateTime());
                     return Optional.of(transaction);
                 }
                 return Optional.empty();
@@ -119,10 +138,24 @@ public class TransactionDAOImpl implements TransactionDAO {
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, transaction.getMonthId());
-            stmt.setLong(2, transaction.getCategoryId());
-            stmt.setLong(3, transaction.getSubcategoryId());
+
+            if (transaction.getCategoryId() == null) {
+                stmt.setNull(2, Types.NULL);
+            } else {
+                stmt.setLong(2, transaction.getCategoryId());
+            }
+
+            if (transaction.getSubcategoryId() == null) {
+                stmt.setNull(3, Types.NULL);
+            } else {
+                stmt.setLong(3, transaction.getSubcategoryId());
+            }
+
             stmt.setString(4, transaction.getDescription());
-            stmt.setString(5, transaction.getTimestamp().toString());
+
+            String timestamp = transaction.getTimestamp().format(formatter).toString();
+            stmt.setTimestamp(5, Timestamp.valueOf(timestamp));
+
             stmt.setBigDecimal(6, transaction.getAmount());
             stmt.setLong(7, transaction.getId());
 
@@ -168,7 +201,7 @@ public class TransactionDAOImpl implements TransactionDAO {
         transaction.setCategoryId(resultSet.getLong(F_CATEGORY_ID));
         transaction.setSubcategoryId(resultSet.getLong(F_SUBCATEGORY_ID));
         transaction.setDescription(resultSet.getString(F_DESCRIPTION));
-        transaction.setTimestamp(LocalDateTime.parse(resultSet.getString(F_TIMESTAMP)));
+        transaction.setTimestamp(LocalDateTime.parse(resultSet.getString(F_TIMESTAMP), formatter));
         transaction.setAmount(resultSet.getBigDecimal(F_AMOUNT));
 
         return transaction;

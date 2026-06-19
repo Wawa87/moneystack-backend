@@ -1,6 +1,5 @@
 package com.wawa87.moneystack.service.system.month.dao;
 
-import com.wawa87.moneystack.service.system.budget.model.Budget;
 import com.wawa87.moneystack.service.system.month.model.Month;
 
 import java.util.List;

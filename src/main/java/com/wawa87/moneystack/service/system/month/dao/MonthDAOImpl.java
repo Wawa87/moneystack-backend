@@ -106,8 +106,8 @@ public class MonthDAOImpl implements MonthDAO {
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, month.getBudgetId());
-            stmt.setString(2, month.getYear().toString());
-            stmt.setString(3, month.getMonth().toString());
+            stmt.setInt(2, month.getYear().getValue());
+            stmt.setInt(3, month.getMonth().getValue());
             stmt.setLong(4, month.getId());
 
             return stmt.executeUpdate();
