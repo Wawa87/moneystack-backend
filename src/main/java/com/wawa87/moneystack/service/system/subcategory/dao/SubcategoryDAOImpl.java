@@ -6,10 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.ObjectMapper;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -32,6 +29,7 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
     private static final String F_ID = "id";
     private static final String F_CATEGORY_ID = "category_id";
     private static final String F_NAME = "name";
+    private static final String F_DESCRIPTION = "description";
 
     public SubcategoryDAOImpl(Connection connection) {
         this.connection = connection;
@@ -41,11 +39,17 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
     public Optional<Subcategory> save(Subcategory subcategory) {
         String sql = "INSERT INTO " + TABLE + " ("
             + F_CATEGORY_ID + ","
-            + F_NAME + ") VALUES(?, ?) RETURNING id";
-
+            + F_NAME + ","
+            + F_DESCRIPTION + ") VALUES(?, ?, ?) RETURNING " + F_ID;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, subcategory.getCategoryId());
             stmt.setString(2, subcategory.getName());
+
+            if (subcategory.getDescription() == null) {
+                stmt.setNull(3, Types.NULL);
+            } else {
+                stmt.setString(3, subcategory.getDescription());
+            }
 
             try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
@@ -100,12 +104,19 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
 
     @Override
     public int update(Subcategory subcategory) {
-        String sql = "UPDATE " + TABLE + " SET " + F_CATEGORY_ID + "=?, " + F_NAME + "=? WHERE " + F_ID + "=?";
+        String sql = "UPDATE " + TABLE + " SET " + F_CATEGORY_ID + "=?, " + F_NAME + "=?, " + F_DESCRIPTION + "=? WHERE " + F_ID + "=?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, subcategory.getCategoryId());
             stmt.setString(2, subcategory.getName());
-            stmt.setLong(3, subcategory.getId());
+
+            if (subcategory.getDescription() == null) {
+                stmt.setNull(3, Types.NULL);
+            } else {
+                stmt.setString(3, subcategory.getDescription());
+            }
+
+            stmt.setLong(4, subcategory.getId());
 
             return stmt.executeUpdate();
         } catch (SQLException e) {
@@ -130,9 +141,10 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
 
     private Subcategory mapRow(ResultSet resultSet) throws SQLException {
         Subcategory subcategory = new Subcategory();
-        subcategory.setId(resultSet.getLong("id"));
-        subcategory.setCategoryId(resultSet.getLong("category_id"));
-        subcategory.setName(resultSet.getString("name"));
+        subcategory.setId(resultSet.getLong(F_ID));
+        subcategory.setCategoryId(resultSet.getLong(F_CATEGORY_ID));
+        subcategory.setName(resultSet.getString(F_NAME));
+        subcategory.setDescription(resultSet.getString(F_DESCRIPTION));
 
         return subcategory;
     }

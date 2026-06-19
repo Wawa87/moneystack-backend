@@ -5,10 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.ObjectMapper;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
@@ -30,6 +27,7 @@ public class CategoryDAOImpl implements CategoryDAO {
     private static final String F_ID = "id";
     private static final String F_USER_ID = "user_id";
     private static final String F_NAME = "name";
+    private static final String F_DESCRIPTION = "description";
 
     public CategoryDAOImpl(Connection connection) {
         this.connection = connection;
@@ -39,11 +37,17 @@ public class CategoryDAOImpl implements CategoryDAO {
     public Optional<Category> save(Category category) {
         String sql = "INSERT INTO " + TABLE + " ("
         + F_USER_ID + ", "
-        + F_NAME + ") VALUES(?, ?) RETURNING " + F_ID;
-
+        + F_NAME + ", "
+        + F_DESCRIPTION + ") VALUES(?, ?, ?) RETURNING " + F_ID;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, category.getUserId());
             stmt.setString(2, category.getName());
+
+            if (category.getDescription() == null) {
+                stmt.setNull(3, Types.NULL);
+            } else {
+                stmt.setString(3, category.getDescription());
+            }
 
             try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
@@ -159,12 +163,19 @@ public class CategoryDAOImpl implements CategoryDAO {
 
     @Override
     public int update(Category category) {
-        String sql = "UPDATE " + TABLE + " SET " + F_USER_ID + "=?, " + F_NAME + "=? WHERE " + F_ID + "=?";
+        String sql = "UPDATE " + TABLE + " SET " + F_USER_ID + "=?, " + F_NAME + "=?, " + F_DESCRIPTION + "=? WHERE " + F_ID + "=?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, category.getUserId());
             stmt.setString(2, category.getName());
-            stmt.setLong(3, category.getId());
+
+            if (category.getDescription() == null) {
+                stmt.setNull(3, Types.NULL);
+            } else {
+                stmt.setString(3, category.getDescription());
+            }
+
+            stmt.setLong(4, category.getId());
 
             return stmt.executeUpdate();
         } catch (SQLException e) {
@@ -189,9 +200,10 @@ public class CategoryDAOImpl implements CategoryDAO {
 
     private Category mapRow(ResultSet resultSet) throws SQLException {
         Category category = new Category();
-        category.setId(resultSet.getLong("id"));
-        category.setUserId(resultSet.getLong("user_id"));
-        category.setName(resultSet.getString("name"));
+        category.setId(resultSet.getLong(F_ID));
+        category.setUserId(resultSet.getLong(F_USER_ID));
+        category.setName(resultSet.getString(F_NAME));
+        category.setDescription(resultSet.getString(F_DESCRIPTION));
 
         return category;
     }
