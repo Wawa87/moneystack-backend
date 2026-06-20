@@ -4,6 +4,7 @@ public class Budget {
     private Long id;
     private Long userId;
     private String name;
+    private Boolean isActive = Boolean.FALSE;
 
     public Long getId() {
         return id;
@@ -27,5 +28,13 @@ public class Budget {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Boolean getActive() {
+        return isActive;
+    }
+
+    public void setActive(Boolean active) {
+        isActive = active;
     }
 }

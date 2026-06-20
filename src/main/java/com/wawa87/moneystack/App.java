@@ -2,9 +2,20 @@ package com.wawa87.moneystack;
 
 import com.wawa87.moneystack.service.app.*;
 import com.wawa87.moneystack.service.auth.*;
+import com.wawa87.moneystack.service.system.budget.BudgetService;
+import com.wawa87.moneystack.service.system.budget.dao.BudgetDAO;
+import com.wawa87.moneystack.service.system.budget.dao.BudgetDAOImpl;
 import com.wawa87.moneystack.service.system.category.CategoryService;
+import com.wawa87.moneystack.service.system.category.dao.CategoryDAO;
 import com.wawa87.moneystack.service.system.category.dao.CategoryDAOImpl;
+import com.wawa87.moneystack.service.system.month.MonthService;
+import com.wawa87.moneystack.service.system.month.dao.MonthDAO;
+import com.wawa87.moneystack.service.system.month.dao.MonthDAOImpl;
+import com.wawa87.moneystack.service.system.transaction.TransactionService;
+import com.wawa87.moneystack.service.system.transaction.dao.TransactionDAO;
+import com.wawa87.moneystack.service.system.transaction.dao.TransactionDAOImpl;
 import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.dao.UserDAO;
 import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
 import com.wawa87.moneystack.service.system.db.PGUtil;
 import de.mkammerer.argon2.Argon2;
@@ -26,7 +37,10 @@ public class App {
     public static DataSource dataSource = PGUtil.getDataSource();
     public static Argon2 argon2 = Argon2Util.getArgon2();
     public static UserService userService;
+    public static BudgetService budgetService;
     public static CategoryService categoryService;
+    public static MonthService monthService;
+    public static TransactionService transactionService;
     public static Loader loader;
     public static Properties properties;
 
@@ -34,11 +48,20 @@ public class App {
         try {
             Connection connection = dataSource.getConnection();
 
-            UserDAOImpl userDAO = new UserDAOImpl(connection);
+            UserDAO userDAO = new UserDAOImpl(connection);
             userService = new UserService(userDAO, argon2);
 
-            CategoryDAOImpl categoryDAO = new CategoryDAOImpl(connection);
+            BudgetDAO budgetDAO = new BudgetDAOImpl(connection);
+            budgetService = new BudgetService(budgetDAO);
+
+            CategoryDAO categoryDAO = new CategoryDAOImpl(connection);
             categoryService = new CategoryService(categoryDAO);
+
+            MonthDAO monthDAO = new MonthDAOImpl(connection);
+            monthService = new MonthService(monthDAO);
+
+            TransactionDAO transactionDAO = new TransactionDAOImpl(connection);
+            transactionService = new TransactionService(transactionDAO);
 
             loader = new Loader();
             properties = loader.loadPropertiesFile("application.properties");
@@ -102,8 +125,8 @@ public class App {
         ServletHolder marcoServlet = new ServletHolder(new MarcoServlet());
         context.addServlet(marcoServlet, "/marco");
 
-        ServletHolder dashboardServlet = new ServletHolder(new HomeServlet(userService));
-        context.addServlet(dashboardServlet, "/");
+        ServletHolder homeServlet = new ServletHolder(new HomeServlet(userService, budgetService, monthService, transactionService));
+        context.addServlet(homeServlet, "/");
 
         ServletHolder profileServlet = new ServletHolder(new UserServlet(userService));
         context.addServlet(profileServlet, "/user/*");

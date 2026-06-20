@@ -3,15 +3,20 @@ package com.wawa87.moneystack.service.system.user;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
+import com.wawa87.moneystack.service.system.budget.BudgetService;
 import com.wawa87.moneystack.service.system.user.dao.UserDAO;
 import com.wawa87.moneystack.service.system.user.dao.UserDTO;
 import com.wawa87.moneystack.service.system.user.model.User;
 import de.mkammerer.argon2.Argon2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Optional;
 
 public class UserService {
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
     private UserDAO userDAO;
     private Argon2 argon2;
 

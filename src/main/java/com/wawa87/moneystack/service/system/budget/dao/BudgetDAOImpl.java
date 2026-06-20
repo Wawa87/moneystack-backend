@@ -28,6 +28,7 @@ public class BudgetDAOImpl implements BudgetDAO {
     private static final String F_ID = "id";
     private static final String F_USER_ID = "user_id";
     private static final String F_NAME = "name";
+    private static final String F_ISACTIVE = "is_active";
 
     public BudgetDAOImpl(Connection connection) {
         this.connection = connection;
@@ -37,12 +38,14 @@ public class BudgetDAOImpl implements BudgetDAO {
     public Optional<Budget> save(Budget budget) {
         String sql = "INSERT INTO " + TABLE + " ("
             + F_USER_ID + ","
-            + F_NAME
-            + ") VALUES(?, ?) RETURNING id";
+            + F_NAME + ","
+            + F_ISACTIVE
+            + ") VALUES(?, ?, ?) RETURNING id";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, budget.getUserId());
             stmt.setString(2, budget.getName());
+            stmt.setBoolean(3, budget.getActive());
 
             try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
@@ -99,12 +102,14 @@ public class BudgetDAOImpl implements BudgetDAO {
     public int update(Budget budget) {
         String sql = "UPDATE " + TABLE + " SET "
             + F_USER_ID + "=?,"
-            + F_NAME + "=? WHERE " + F_ID + "=?";
+            + F_NAME + "=?,"
+            + F_ISACTIVE + "=? WHERE " + F_ID + "=?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, budget.getUserId());
             stmt.setString(2, budget.getName());
-            stmt.setLong(3, budget.getId());
+            stmt.setBoolean(3, budget.getActive());
+            stmt.setLong(4, budget.getId());
 
             return stmt.executeUpdate();
         } catch (SQLException e) {
@@ -143,9 +148,10 @@ public class BudgetDAOImpl implements BudgetDAO {
 
     private Budget mapRow(ResultSet resultSet) throws SQLException {
         Budget budget = new Budget();
-        budget.setId(resultSet.getLong("id"));
-        budget.setUserId(resultSet.getLong("user_id"));
-        budget.setName(resultSet.getString("name"));
+        budget.setId(resultSet.getLong(F_ID));
+        budget.setUserId(resultSet.getLong(F_USER_ID));
+        budget.setName(resultSet.getString(F_NAME));
+        budget.setActive(resultSet.getBoolean(F_ISACTIVE));
 
         return budget;
     }

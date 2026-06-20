@@ -80,7 +80,7 @@ public class HomeServletTest {
             Gson gson = new Gson();
             HomeServlet.AppUser appUser = gson.fromJson(response.body(), HomeServlet.AppUser.class);
 
-            Assertions.assertEquals("cosmo", appUser.getUserId());
+            Assertions.assertEquals("cosmo", appUser.getUsername());
             Assertions.assertEquals("Cosmo", appUser.getFirstName());
             Assertions.assertEquals("Kramer", appUser.getLastName());
             Assertions.assertEquals("+17602220101", appUser.getPhoneNumber());
