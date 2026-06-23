@@ -37,4 +37,8 @@ public class BudgetService {
         List<Budget> budgets = budgetDAO.findByUsername(username);
         return budgets;
     }
+
+    public void saveBudget(Budget budget) {
+        budget = budgetDAO.save(budget).get();
+    }
 }

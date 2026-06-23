@@ -1,13 +1,17 @@
 package com.wawa87.moneystack.service.app;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.wawa87.moneystack.service.app.util.DashboardSet;
+import com.wawa87.moneystack.service.app.util.LocalDateTimeAdapter;
 import com.wawa87.moneystack.service.system.budget.BudgetService;
 import com.wawa87.moneystack.service.system.budget.model.Budget;
 import com.wawa87.moneystack.service.system.month.MonthService;
 import com.wawa87.moneystack.service.system.month.model.Month;
 import com.wawa87.moneystack.service.system.transaction.TransactionService;
-import com.wawa87.moneystack.service.system.transaction.model.Transaction;
+import com.wawa87.moneystack.service.system.transaction.dao.TransactionDTO;
 import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.dao.UserDTO;
 import com.wawa87.moneystack.service.system.user.model.User;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,83 +44,45 @@ public class HomeServlet extends HttpServlet {
         if (userRes.isPresent()) {
             // Get User data.
             User currentUser = userRes.get();
-            AppUser appUser = new AppUser();
-            appUser.setUserId(currentUser.getId());
-            appUser.setUsername(currentUser.getUsername());
-            appUser.setFirstName(currentUser.getFirstName());
-            appUser.setLastName(currentUser.getLastName());
-            appUser.setPhoneNumber(currentUser.getPhoneNumber());
+            UserDTO userDTO = new UserDTO();
+            userDTO.setId(currentUser.getId());
+            userDTO.setUsername(currentUser.getUsername());
+            userDTO.setEmails(currentUser.getEmails());
+            userDTO.setFirstName(currentUser.getFirstName());
+            userDTO.setLastName(currentUser.getLastName());
+            userDTO.setPhoneNumber(currentUser.getPhoneNumber());
 
-            // Get Budgets for user.
-            List<Budget> budgets = budgetService.getBudgetsForUser(appUser.getUsername());
+            DashboardSet dashboardSet = new DashboardSet();
+            dashboardSet.setUser(userDTO);
 
-            Budget activeBudget = budgets.stream().filter((it) -> {
-                return it.getActive().booleanValue();
-            }).toList().get(0);
+            // Get dashboard data for the user: Active budget and transactions.
+            List<Budget> budgets = budgetService.getBudgetsForUser(userDTO.getUsername());
 
-            List<Month> months = monthService.getMonthsByBudgetId(activeBudget.getId());
-            months = MonthService.sortMonthsDesc(months);
+            if (budgets.size() > 0) {
+                Budget activeBudget = budgets.stream().filter((it) -> {
+                    return it.getActive().booleanValue();
+                }).toList().get(0);
 
-            List<Transaction> transactions = transactionService.getTransactionsByMonthId(months.get(0).getId());
+                dashboardSet.setActiveBudget(activeBudget);
 
-            // TODO: Finish logic for loading the dashboard data.
+                List<Month> months = monthService.getMonthsByBudgetId(activeBudget.getId());
+                months = MonthService.sortMonthsDesc(months);
 
-            Gson gson = new Gson();
-            String responseStr = gson.toJson(appUser);
+                if (months.size() > 0) {
+                    List<TransactionDTO> transactionDTOs = transactionService.getTransactionDTOsByMonthId(months.get(0).getId());
+                    dashboardSet.setTransactions(transactionDTOs);
+                }
+            }
 
+            Gson gson = new GsonBuilder().serializeNulls().registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter()).create();
+
+            String responseStr = gson.toJson(dashboardSet);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(responseStr);
+
             return;
         }
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    }
-
-    public class AppUser {
-        private Long userId;
-        private String username;
-        private String firstName;
-        private String lastName;
-        private String phoneNumber;
-
-        public Long getUserId() {
-            return userId;
-        }
-
-        public void setUserId(Long userId) {
-            this.userId = userId;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getFirstName() {
-            return firstName;
-        }
-
-        public void setFirstName(String firstName) {
-            this.firstName = firstName;
-        }
-
-        public String getLastName() {
-            return lastName;
-        }
-
-        public void setLastName(String lastName) {
-            this.lastName = lastName;
-        }
-
-        public String getPhoneNumber() {
-            return phoneNumber;
-        }
-
-        public void setPhoneNumber(String phoneNumber) {
-            this.phoneNumber = phoneNumber;
-        }
     }
 }

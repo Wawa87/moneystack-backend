@@ -32,4 +32,8 @@ public class MonthService {
         return Comparator.comparing(Month::getYear)
                 .thenComparing(Month::getMonth);
     }
+
+    public void saveMonth(Month month) {
+        monthDAO.save(month);
+    }
 }

@@ -11,6 +11,9 @@ import com.wawa87.moneystack.service.system.category.dao.CategoryDAOImpl;
 import com.wawa87.moneystack.service.system.month.MonthService;
 import com.wawa87.moneystack.service.system.month.dao.MonthDAO;
 import com.wawa87.moneystack.service.system.month.dao.MonthDAOImpl;
+import com.wawa87.moneystack.service.system.subcategory.SubcategoryService;
+import com.wawa87.moneystack.service.system.subcategory.dao.SubcategoryDAO;
+import com.wawa87.moneystack.service.system.subcategory.dao.SubcategoryDAOImpl;
 import com.wawa87.moneystack.service.system.transaction.TransactionService;
 import com.wawa87.moneystack.service.system.transaction.dao.TransactionDAO;
 import com.wawa87.moneystack.service.system.transaction.dao.TransactionDAOImpl;
@@ -39,6 +42,7 @@ public class App {
     public static UserService userService;
     public static BudgetService budgetService;
     public static CategoryService categoryService;
+    public static SubcategoryService subcategoryService;
     public static MonthService monthService;
     public static TransactionService transactionService;
     public static Loader loader;
@@ -57,6 +61,9 @@ public class App {
             CategoryDAO categoryDAO = new CategoryDAOImpl(connection);
             categoryService = new CategoryService(categoryDAO);
 
+            SubcategoryDAO subcategoryDAO = new SubcategoryDAOImpl(connection);
+            subcategoryService = new SubcategoryService(subcategoryDAO);
+
             MonthDAO monthDAO = new MonthDAOImpl(connection);
             monthService = new MonthService(monthDAO);
 
@@ -71,43 +78,43 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
-//        Server server = new Server(8080);
-        Server server = new Server();
+        Server server = new Server(8080);
+//        Server server = new Server();
 
         // SSL Context Configuration
-        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-        sslContextFactory.setKeyStorePath("src/main/resources/certs/jetty.keystore.jks");
-        sslContextFactory.setKeyStorePassword("localdev");
-        sslContextFactory.setKeyManagerPassword("localdev");
+//        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
+//        sslContextFactory.setKeyStorePath("src/main/resources/certs/jetty.keystore.jks");
+//        sslContextFactory.setKeyStorePassword("localdev");
+//        sslContextFactory.setKeyManagerPassword("localdev");
 
         // HTTPS Configuration for SSL
-        HttpConfiguration httpsConfig = new HttpConfiguration();
-        httpsConfig.setSecureScheme("https");
-        httpsConfig.addCustomizer(new SecureRequestCustomizer());
+//        HttpConfiguration httpsConfig = new HttpConfiguration();
+//        httpsConfig.setSecureScheme("https");
+//        httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
         // SSL Connection Factory
-        SslConnectionFactory sslConnectionFactory = new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString());
+//        SslConnectionFactory sslConnectionFactory = new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString());
 
         // HTTP Connection Factory
-        HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory(httpsConfig);
+//        HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory(httpsConfig);
 
         // Create and add the Connector
-        ServerConnector sslConnector = new ServerConnector(server, sslConnectionFactory, httpConnectionFactory);
-        sslConnector.setPort(8443);
+//        ServerConnector sslConnector = new ServerConnector(server, sslConnectionFactory, httpConnectionFactory);
+//        sslConnector.setPort(8443);
 
-        server.addConnector(sslConnector);
+//        server.addConnector(sslConnector);
 
         ServletContextHandler context =
                 new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
 
-        FilterHolder preflightFilter = new FilterHolder(new PreflightFilter());
-        context.addFilter(
-                preflightFilter,
-                "/*",
-                EnumSet.of(DispatcherType.REQUEST)
-        );
+//        FilterHolder preflightFilter = new FilterHolder(new PreflightFilter());
+//        context.addFilter(
+//                preflightFilter,
+//                "/*",
+//                EnumSet.of(DispatcherType.REQUEST)
+//        );
 
         FilterHolder authenticationFilter = new FilterHolder(new AuthenticationFilter());
         context.addFilter(

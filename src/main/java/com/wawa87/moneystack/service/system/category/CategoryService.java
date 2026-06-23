@@ -15,7 +15,7 @@ public class CategoryService {
         this.categoryDAO = categoryDAO;
     }
 
-    public Category addCategory(Category category) {
+    public Category saveCategory(Category category) {
         Optional<Category> categoryOptional = this.categoryDAO.save(category);
         category = categoryOptional.get();
         return category;
@@ -33,6 +33,16 @@ public class CategoryService {
             categoriesDTO.add(categoryDTO);
         });
         return categoriesDTO;
+    }
+
+    public CategoryDTO getCategoryDTOById(Long categoryId) {
+        Category category = categoryDAO.findById(categoryId).get();
+        CategoryDTO categoryDTO = new CategoryDTO();
+        categoryDTO.setId(category.getId());
+        categoryDTO.setUserId(category.getUserId());
+        categoryDTO.setName(category.getName());
+        categoryDTO.setDescription(category.getDescription());
+        return categoryDTO;
     }
 
     public int deleteCategory(Category category) {
