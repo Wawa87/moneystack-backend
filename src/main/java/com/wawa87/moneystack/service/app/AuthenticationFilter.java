@@ -1,6 +1,8 @@
 package com.wawa87.moneystack.service.app;
 
 import com.wawa87.moneystack.service.auth.JwtUtil;
+import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.model.User;
 import jakarta.servlet.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpFilter;
@@ -10,9 +12,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class AuthenticationFilter extends HttpFilter {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
+
+    private UserService userService;
+
+    public AuthenticationFilter(UserService userService) {
+        this.userService = userService;
+    }
 
     @Override
     public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
@@ -27,7 +36,13 @@ public class AuthenticationFilter extends HttpFilter {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals("access_token")) {
                     String subject = JwtUtil.validateAndGetSubject(cookie.getValue());
+                    Optional<User> userOpt = userService.getUser(subject);
+
+                    if (userOpt.isPresent()) {
+                        request.setAttribute("userId", userOpt.get().getId());
+                    }
                     request.setAttribute("subject", subject);
+
                     filterChain.doFilter(request, response);
                     return;
                 }

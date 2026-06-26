@@ -116,7 +116,7 @@ public class App {
 //                EnumSet.of(DispatcherType.REQUEST)
 //        );
 
-        FilterHolder authenticationFilter = new FilterHolder(new AuthenticationFilter());
+        FilterHolder authenticationFilter = new FilterHolder(new AuthenticationFilter(userService));
         context.addFilter(
                 authenticationFilter,
                 "/*",
