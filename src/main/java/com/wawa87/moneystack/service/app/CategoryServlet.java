@@ -1,9 +1,13 @@
 package com.wawa87.moneystack.service.app;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import com.wawa87.moneystack.service.system.category.CategoryService;
 import com.wawa87.moneystack.service.system.category.dao.CategoryDTO;
 import com.wawa87.moneystack.service.system.category.model.Category;
+import com.wawa87.moneystack.service.system.db.ResultStatus;
+import com.wawa87.moneystack.service.system.db.ServletUtility;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,8 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.http.HttpResponse;
-import java.util.ArrayList;
 import java.util.List;
 
 public class CategoryServlet extends HttpServlet {
@@ -28,148 +30,181 @@ public class CategoryServlet extends HttpServlet {
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String pathInfo = request.getPathInfo();
+        String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
         Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
-        String subject = request.getAttribute("subject").toString();
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        // Process: /category/all/<username>
-        if (pathInfo.matches("^/all/[a-zA-z0-9]+")) {
-            String[] split = pathInfo.split("/");
-            String username = split[2];
-
-            // Disallow actions on categories for other users.
-            if (!subject.equals(username)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("{\"error\": \"Authenticated user mismatch: " + username + "\"}");
-                return;
-            }
-
-            List<CategoryDTO> categories = categoryService.getCategories(username);
-
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().write(this.gson.toJson(categories));
+        // Handle request: /categories
+        if (pathInfo.length == 0) {
+            List<Category> categories = categoryService.getCategoriesByUserId(userId);
+            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, categories);
             return;
         }
 
-        // Process: /category/<categoryId>
-        if (pathInfo.matches("/[0-9]+")) {
-            String[] split = pathInfo.split("/");
-            Long categoryId = Long.parseLong(split[1]);
+        // Handle request: /categories/{categoryId}
+        if (pathInfo.length == 2) {
+            Long categoryId = Long.valueOf(pathInfo[1]);
 
-            CategoryDTO category = categoryService.getCategoryDTOById(categoryId);
-
-            if (category.getId() != userId) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("{\"error\": \"Authenticated user mismatch for categoryId: " + categoryId + "\"}");
+            try {
+                Category category = categoryService.findCategoryById(categoryId, userId);
+                if (category == null) category = new Category();
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, category);
+                return;
+            } catch (IllegalAccessException e) {
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden.");
                 return;
             }
-
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().write(this.gson.toJson(category));
-            return;
         }
-
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        return;
     }
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) {
-        String pathInfo = request.getPathInfo();
+        // Handle request: /categories
         Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
-        String subject = request.getAttribute("subject").toString();
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+        try {
+            CategoryDTO categoryDTO = gson.fromJson(request.getReader(), CategoryDTO.class);
 
-        // Process: /category/new
-        if (pathInfo.matches("/new")) {
-            try {
-                CategoryData categoryData = parseCategory(request);
-                Category newCategory =  new Category();
-                newCategory.setUserId(userId);
-                newCategory.setName(categoryData.getName());
-                newCategory.setDescription(categoryData.getDescription());
-
-                newCategory = categoryService.saveCategory(newCategory);
-
-                response.setStatus(HttpServletResponse.SC_CREATED);
-                response.getWriter().write(this.gson.toJson(newCategory));
-                return;
-            } catch (IOException e) {
-                logger.error(e.getMessage());
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            // Validate the object.
+            if (categoryDTO == null || categoryDTO.getName() == null || categoryDTO.getName().isBlank()) {
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Category name is required.");
                 return;
             }
-        }
 
-        // Process: /category/update/<categoryId>
-        if (pathInfo.matches("/update/[0-9]+")) {
-            String[] split = pathInfo.split("/");
-            Long categoryId = Long.parseLong(split[2]);
+            // Save the category.
+            Category category = categoryService.saveCategory(userId, categoryDTO);
 
-            try {
-                CategoryData categoryData = parseCategory(request);
-
-                CategoryDTO categoryDTO = categoryService.getCategoryDTOById(categoryId);
-
-                if (categoryDTO.getUserId() != userId) {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("{\"error\": \"Authenticated user mismatch for categoryId: " + categoryId + "\"}");
-                    return;
-                }
-
-                Category updatedCategory = new Category();
-                updatedCategory.setId(categoryDTO.getId());
-                updatedCategory.setUserId(categoryDTO.getUserId());
-                updatedCategory.setName(categoryData.getName());
-                updatedCategory.setDescription(categoryData.getDescription());
-                categoryService.updateCategory(updatedCategory);
-
-                response.setStatus(HttpServletResponse.SC_CREATED);
-                response.getWriter().write(this.gson.toJson(updatedCategory));
-                return;
-            } catch (IOException e) {
-                logger.error(e.getMessage());
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                return;
+            if (category == null) {
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error. Category not created.");
             }
+            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_CREATED, category);
+            return;
+        } catch (Exception e) {
+            logger.error("Error: ", e);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+            return;
         }
-
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
     }
 
-    private CategoryData parseCategory(HttpServletRequest request) throws IOException {
+    @Override
+    public void doPut(HttpServletRequest request, HttpServletResponse response) {
+        // Handle request: /categories/{categoryId}
+        String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
+        Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
+
+        if (pathInfo.length != 2) {
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad request.");
+            return;
+        }
+
+        try {
+            // Get the Category Id from the request path.
+            Long categoryId = Long.valueOf(pathInfo[1]);
+
+            // Read payload into object.
+            CategoryDTO categoryDTO = gson.fromJson(request.getReader(), CategoryDTO.class);
+
+            // Validate the object.
+            if (categoryDTO == null || categoryDTO.getName() == null || categoryDTO.getName().isBlank()) {
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Category name is required.");
+                return;
+            }
+
+            // Update the category.
+            ResultStatus result = categoryService.updateCategory(categoryId, userId, categoryDTO);
+
+            switch (result) {
+                case SUCCESS: ServletUtility.sendResponse(response, HttpServletResponse.SC_NO_CONTENT, ""); break;
+                case FORBIDDEN: ServletUtility.sendResponse(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden."); break;
+                case NOT_FOUND: ServletUtility.sendResponse(response, HttpServletResponse.SC_NOT_FOUND, "Category not found."); break;
+                default: ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+            }
+            return;
+        } catch (JsonSyntaxException e) {
+            logger.error("Error: ", e);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON.");
+            return;
+        } catch (NumberFormatException e) {
+            logger.error("Error: ", e);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid category id.");
+            return;
+        } catch (Exception e) {
+            logger.error("Error: ", e);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+            return;
+        }
+    }
+
+    @Override
+    public void doDelete(HttpServletRequest request, HttpServletResponse response) {
+        // Handle request: /categories/{categoryId}
+        String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
+        Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
+
+        if (pathInfo.length != 2) {
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad request.");
+            return;
+        }
+
+        try {
+            // Get the Category Id from the request path.
+            Long categoryId = Long.valueOf(pathInfo[1]);
+
+            // Delete the category.
+            ResultStatus result = categoryService.deleteCategoryById(categoryId, userId);
+
+            switch (result) {
+                case SUCCESS: ServletUtility.sendResponse(response, HttpServletResponse.SC_NO_CONTENT, ""); break;
+                case FORBIDDEN: ServletUtility.sendResponse(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden."); break;
+                case NOT_FOUND: ServletUtility.sendResponse(response, HttpServletResponse.SC_NOT_FOUND, "Category not found."); break;
+                default: ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+            }
+            return;
+        } catch (NumberFormatException e) {
+            logger.error("Error: ", e);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid category id.");
+            return;
+        } catch (Exception e) {
+            logger.error("Error: ", e);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+            return;
+        }
+    }
+
+    private CategoryDTO parseCategory(HttpServletRequest request) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
 
         try (BufferedReader bufferedReader = request.getReader()) {
             bufferedReader.lines().forEach(line -> { stringBuilder.append(line);});
-            CategoryData categoryData = this.gson.fromJson(stringBuilder.toString(), CategoryData.class);
+            CategoryDTO categoryData = this.gson.fromJson(stringBuilder.toString(), CategoryDTO.class);
             return categoryData;
         }
     }
 
-    private class CategoryData {
-        private String name;
-        private String description;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-    }
+//    private void sendResponse(HttpServletResponse response, int responseStatus, String message) {
+//        response.setContentType("application/json");
+//        response.setCharacterEncoding("UTF-8");
+//        response.setStatus(responseStatus);
+//        if (!message.isEmpty()) {
+//            try {
+//                response.getWriter().write("{\"message\": \"" + message + "\"}");
+//            } catch (IOException e) {
+//                sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+//                throw new RuntimeException(e);
+//            }
+//        }
+//    }
+//
+//    private <T> void sendResponseObject(HttpServletResponse response, int responseStatus, Object responseObject) {
+//        response.setContentType("application/json");
+//        response.setCharacterEncoding("UTF-8");
+//        response.setStatus(responseStatus);
+//        if (responseObject != null) {
+//            try {
+//                response.getWriter().write(gson.toJson(responseObject));
+//            } catch (IOException e) {
+//                sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+//                throw new RuntimeException(e);
+//            }
+//        }
+//    }
 }

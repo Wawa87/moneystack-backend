@@ -142,7 +142,7 @@ public class App {
         context.addServlet(usernameValidationServlet, "/validateUsername/*");
 
         ServletHolder categoryServlet = new ServletHolder(new CategoryServlet(categoryService));
-        context.addServlet(categoryServlet, "/category/*");
+        context.addServlet(categoryServlet, "/categories/*");
 
         server.start();
         server.join();

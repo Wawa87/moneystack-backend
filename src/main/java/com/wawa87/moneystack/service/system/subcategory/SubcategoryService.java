@@ -1,7 +1,5 @@
 package com.wawa87.moneystack.service.system.subcategory;
 
-import com.wawa87.moneystack.service.system.category.dao.CategoryDTO;
-import com.wawa87.moneystack.service.system.category.model.Category;
 import com.wawa87.moneystack.service.system.subcategory.dao.SubcategoryDAO;
 import com.wawa87.moneystack.service.system.subcategory.dao.SubcategoryDTO;
 import com.wawa87.moneystack.service.system.subcategory.model.Subcategory;

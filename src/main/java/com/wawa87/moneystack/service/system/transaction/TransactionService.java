@@ -4,12 +4,9 @@ import com.wawa87.moneystack.App;
 import com.wawa87.moneystack.service.system.transaction.dao.TransactionDAO;
 import com.wawa87.moneystack.service.system.transaction.dao.TransactionDTO;
 import com.wawa87.moneystack.service.system.transaction.model.Transaction;
-import com.wawa87.moneystack.service.system.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +28,7 @@ public class TransactionService {
             transactionDTO.setAmount(it.getAmount());
             transactionDTO.setDescription(it.getDescription());
             transactionDTO.setTimestamp(it.getTimestamp());
-            transactionDTO.setCategory(App.categoryService.getCategoryDTOById(it.getCategoryId()).getName());
+            transactionDTO.setCategory(App.categoryService.findCategoryById(it.getCategoryId()).getName());
             transactionDTO.setSubcategory(App.subcategoryService.getSubcategoryDTOById(it.getSubcategoryId()).getName());
             transactionDTOs.add(transactionDTO);
         });

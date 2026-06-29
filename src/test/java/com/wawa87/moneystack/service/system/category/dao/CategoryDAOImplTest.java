@@ -312,6 +312,44 @@ public class CategoryDAOImplTest {
     }
 
     @Test
+    public void testUpdate2() {
+        UserDAOImpl userDAO = new UserDAOImpl(this.connection);
+        CategoryDAOImpl categoryDAO = new CategoryDAOImpl(this.connection);
+
+        // Create the test User.
+        User user = new User();
+        user.setUsername("testuser");
+
+        ArrayList<String> emails = new ArrayList<>();
+        emails.add("testuser@email1.com");
+        emails.add("testuser@email2.com");
+        emails.add("testuser@email3.com");
+        user.setEmails(emails);
+
+        user.setFirstName("Test");
+        user.setLastName("User");
+        user.setPhoneNumber("+16195554321");
+
+        // Insert the test User and confirm id generation of new record.
+        Optional<User> rsUser = userDAO.save(user);
+        user = rsUser.get();
+
+        // Test Category update.
+        Category category = new Category();
+        category.setUserId(user.getId());
+        category.setName("TestCat");
+        category = categoryDAO.save(category).get();
+
+        int resultSuccess = categoryDAO.update(category);
+
+        category.setId(Long.valueOf(000));
+
+        int resultFailed = categoryDAO.update(category);
+
+        System.out.println("Pause...");
+    }
+
+    @Test
     public void testDeleteById() {
         UserDAOImpl userDAO = new UserDAOImpl(this.connection);
         CategoryDAOImpl categoryDAO = new CategoryDAOImpl(this.connection);
