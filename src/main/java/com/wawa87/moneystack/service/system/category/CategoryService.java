@@ -21,6 +21,10 @@ public class CategoryService {
         return category;
     }
 
+    public void updateCategory(Category category) {
+        this.categoryDAO.update(category);
+    }
+
     public List<CategoryDTO> getCategories(String username) {
         List<Category> categories = categoryDAO.findByUsername(username);
         List<CategoryDTO> categoriesDTO = new ArrayList<>();

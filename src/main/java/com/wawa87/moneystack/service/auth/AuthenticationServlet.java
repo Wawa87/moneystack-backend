@@ -25,15 +25,23 @@ public class AuthenticationServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
 
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
         try (BufferedReader bufferedReader = request.getReader()) {
             bufferedReader.lines().forEach(line -> { stringBuilder.append(line);});
         }
 
+        String payload = stringBuilder.toString();
+
+        if (payload.trim().length() == 0) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("{ \"message\": \"Bad credentials.\"}");
+            return;
+        }
+
         Gson gson = new Gson();
         UserCredentials userCredentials = gson.fromJson(stringBuilder.toString(), UserCredentials.class);
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
 
         if (this.userService.authenticate(userCredentials.username, userCredentials.password)) {
             String token = JwtUtil.generateToken(userCredentials.username);

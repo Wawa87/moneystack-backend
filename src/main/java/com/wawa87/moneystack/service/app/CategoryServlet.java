@@ -55,7 +55,7 @@ public class CategoryServlet extends HttpServlet {
         }
 
         // Process: /category/<categoryId>
-        if (pathInfo.matches("/^[0-9]+")) {
+        if (pathInfo.matches("/[0-9]+")) {
             String[] split = pathInfo.split("/");
             Long categoryId = Long.parseLong(split[1]);
 
@@ -107,7 +107,7 @@ public class CategoryServlet extends HttpServlet {
         }
 
         // Process: /category/update/<categoryId>
-        if (pathInfo.matches("/update/^[0-9]+")) {
+        if (pathInfo.matches("/update/[0-9]+")) {
             String[] split = pathInfo.split("/");
             Long categoryId = Long.parseLong(split[2]);
 
@@ -127,7 +127,7 @@ public class CategoryServlet extends HttpServlet {
                 updatedCategory.setUserId(categoryDTO.getUserId());
                 updatedCategory.setName(categoryData.getName());
                 updatedCategory.setDescription(categoryData.getDescription());
-                updatedCategory = categoryService.saveCategory(updatedCategory);
+                categoryService.updateCategory(updatedCategory);
 
                 response.setStatus(HttpServletResponse.SC_CREATED);
                 response.getWriter().write(this.gson.toJson(updatedCategory));
@@ -140,7 +140,6 @@ public class CategoryServlet extends HttpServlet {
         }
 
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        return;
     }
 
     private CategoryData parseCategory(HttpServletRequest request) throws IOException {

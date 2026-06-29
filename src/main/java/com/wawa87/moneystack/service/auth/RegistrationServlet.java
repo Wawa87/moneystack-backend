@@ -45,15 +45,15 @@ public class RegistrationServlet extends HttpServlet {
 
         if (newUser != null) {
             response.setStatus(HttpServletResponse.SC_CREATED);
-            response.getWriter().print("Successfully registered user: " + newUser.getUsername());
+            response.getWriter().print("{\"message\": \"Successfully registered user: " + newUser.getUsername() + "\"}");
         } else {
             response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().print("Failed to register user: " + "newUserId");
+            response.getWriter().print("{\"message\": \"Failed to register user: " + newUser.getUsername() + "\"}");
         }
     }
 
     private class UserObject {
-        private String userId;
+        private String username;
         private String email;
         private String firstName;
         private String lastName;
@@ -61,11 +61,11 @@ public class RegistrationServlet extends HttpServlet {
         private String phoneNumber;
 
         public String getUserId() {
-            return userId;
+            return username;
         }
 
-        public void setUserId(String userId) {
-            this.userId = userId;
+        public void setUserId(String username) {
+            this.username = username;
         }
 
         public String getEmail() {
