@@ -4,6 +4,7 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import com.wawa87.moneystack.service.system.budget.BudgetService;
+import com.wawa87.moneystack.service.system.db.ResultStatus;
 import com.wawa87.moneystack.service.system.user.dao.UserDAO;
 import com.wawa87.moneystack.service.system.user.dao.UserDTO;
 import com.wawa87.moneystack.service.system.user.model.User;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class UserService {
@@ -25,19 +27,11 @@ public class UserService {
         this.argon2 = argon2;
     }
 
-    public User register(String username, String email, String firstName, String lastName, String password, String phoneNumber) {
-        User user = new User();
-        user.setUsername(username);
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-
-        user.setEmails(new ArrayList<String>() {{
-            add(email);
-        }});
-
+    public User register(User user) {
+        // Process phone number formatting.
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
         try {
-            Phonenumber.PhoneNumber number = phoneNumberUtil.parse(phoneNumber, "US");
+            Phonenumber.PhoneNumber number = phoneNumberUtil.parse(user.getPhoneNumber(), "US");
             if (phoneNumberUtil.isValidNumber(number)) {
                 user.setPhoneNumber(phoneNumberUtil.format(number, PhoneNumberUtil.PhoneNumberFormat.E164));
             }
@@ -45,18 +39,21 @@ public class UserService {
             e.printStackTrace();
         }
 
-        char[] passwordChar = password.toCharArray();
-
-        String hash = hashPw(password);
-
+        // Hash the password.
+        String hash = hashPw(user.getPasswordHash());
         user.setPasswordHash(hash);
 
+        // Save and return User.
         Optional<User> res = userDAO.save(user);
         if (res.isPresent()) {
             user = res.get();
             return user;
         }
         return null;
+    }
+
+    public User saveUser(User user) {
+        return register(user);
     }
 
     public boolean authenticate(String username, String password) {
@@ -93,6 +90,7 @@ public class UserService {
 
         if (res.isPresent()) {
             User user = res.get();
+            userDTO.setId(user.getId());
             userDTO.setUsername(user.getUsername());
             userDTO.setFirstName(user.getFirstName());
             userDTO.setLastName(user.getLastName());
@@ -102,12 +100,51 @@ public class UserService {
         return Optional.of(userDTO);
     }
 
-    public int updateUser(User user) {
-        return userDAO.update(user);
+    public User findUserById(Long id) {
+        Optional<User> userOpt = userDAO.findById(id);
+        if (userOpt.isEmpty()) return null;
+        else return userOpt.get();
+    }
+
+//    public int updateUser(User user) {
+//        return userDAO.update(user);
+//    }
+
+    public ResultStatus updateUser(User user) {
+        Optional<User> userOpt = userDAO.findById(user.getId());
+        if (userOpt.isEmpty()) return ResultStatus.NOT_FOUND; // Return not found error.
+        // TODO: Implement authorization check.
+
+        // Update the User.
+        User updatedUser = userOpt.get();
+        updatedUser.setUsername(user.getUsername());
+        updatedUser.setEmails(user.getEmails());
+        updatedUser.setFirstName(user.getFirstName());
+        updatedUser.setLastName(user.getLastName());
+        updatedUser.setPhoneNumber(user.getPhoneNumber());
+
+        // Return the result code. Success == 1, Error == 0.
+        int result = userDAO.update(updatedUser); // Returns 1 for row updated. Returns 0 for error/no rows updated.
+        if (result == 1) return ResultStatus.SUCCESS;
+        else return ResultStatus.ERROR;
     }
 
     public int deleteUser(User user) {
         return userDAO.delete(user);
+    }
+
+    public ResultStatus deleteUserById(Long id, Long byUserId) {
+        Optional<User> userOpt = userDAO.findById(id);
+        if (userOpt.isEmpty()) return ResultStatus.NOT_FOUND; // Return not found error.
+        // TODO: Implement authorization check.
+
+        int result = userDAO.deleteById(id);
+        if (result == 1) return ResultStatus.SUCCESS;
+        else return ResultStatus.ERROR;
+    }
+
+    public List<User> getUsers() {
+        return userDAO.findAll();
     }
 
     private String hashPw(String password) {

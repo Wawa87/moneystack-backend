@@ -65,12 +65,12 @@ public class CategoryService {
         if (categoryOpt.isEmpty()) return ResultStatus.NOT_FOUND; // Return not found error.
         if (!AuthorizationChecker.authorizeCategory(categoryOpt.get(), userId)) return ResultStatus.FORBIDDEN;
 
-        // Update the category.
+        // Update the Category.
         Category category = categoryOpt.get();
         category.setName(categoryDTO.getName());
         category.setDescription(categoryDTO.getDescription());
 
-        // Return the result code. Success == 1, Error == 0;
+        // Return the result code. Success == 1, Error == 0.
         int result = categoryDAO.update(category); // Returns 1 for row updated. Returns 0 for error/no rows updated.
         if (result == 1) return ResultStatus.SUCCESS;
         else return ResultStatus.ERROR;

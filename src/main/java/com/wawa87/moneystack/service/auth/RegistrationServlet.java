@@ -2,6 +2,7 @@ package com.wawa87.moneystack.service.auth;
 
 import com.google.gson.Gson;
 import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.dao.UserRegistration;
 import com.wawa87.moneystack.service.system.user.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class RegistrationServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(RegistrationServlet.class);
@@ -30,16 +32,17 @@ public class RegistrationServlet extends HttpServlet {
         }
 
         Gson gson = new Gson();
-        RegistrationServlet.UserObject userObject = gson.fromJson(stringBuilder.toString(), RegistrationServlet.UserObject.class);
+        UserRegistration userRegistration = gson.fromJson(stringBuilder.toString(), UserRegistration.class);
 
-        User newUser = userService.register(
-                userObject.getUserId(),
-                userObject.getEmail(),
-                userObject.getFirstName(),
-                userObject.getLastName(),
-                userObject.getPassword(),
-                userObject.getPhoneNumber()
-        );
+        User newUser = new User();
+        newUser.setUsername(userRegistration.getUsername());
+        newUser.setFirstName(userRegistration.getFirstName());
+        newUser.setLastName(userRegistration.getLastName());
+        newUser.setEmails((ArrayList<String>) userRegistration.getEmails());
+        newUser.setPhoneNumber(userRegistration.getPhoneNumber());
+        newUser.setPasswordHash(userRegistration.getPassword());
+
+        userService.register(newUser);
 
         response.setContentType("text/json;charset=utf-8");
 
@@ -49,63 +52,6 @@ public class RegistrationServlet extends HttpServlet {
         } else {
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().print("{\"message\": \"Failed to register user: " + newUser.getUsername() + "\"}");
-        }
-    }
-
-    private class UserObject {
-        private String username;
-        private String email;
-        private String firstName;
-        private String lastName;
-        private String password;
-        private String phoneNumber;
-
-        public String getUserId() {
-            return username;
-        }
-
-        public void setUserId(String username) {
-            this.username = username;
-        }
-
-        public String getEmail() {
-            return email;
-        }
-
-        public void setEmail(String email) {
-            this.email = email;
-        }
-
-        public String getFirstName() {
-            return firstName;
-        }
-
-        public void setFirstName(String firstName) {
-            this.firstName = firstName;
-        }
-
-        public String getLastName() {
-            return lastName;
-        }
-
-        public void setLastName(String lastName) {
-            this.lastName = lastName;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
-
-        public String getPhoneNumber() {
-            return phoneNumber;
-        }
-
-        public void setPhoneNumber(String phoneNumber) {
-            this.phoneNumber = phoneNumber;
         }
     }
 }

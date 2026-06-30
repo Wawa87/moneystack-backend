@@ -1,6 +1,10 @@
 package com.wawa87.moneystack.service.app;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.wawa87.moneystack.service.auth.AuthorizationChecker;
+import com.wawa87.moneystack.service.system.db.ResultStatus;
+import com.wawa87.moneystack.service.system.db.ServletUtility;
 import com.wawa87.moneystack.service.system.user.UserService;
 import com.wawa87.moneystack.service.system.user.dao.UserDTO;
 import com.wawa87.moneystack.service.system.user.model.User;
@@ -11,109 +15,182 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 public class UserServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(UserServlet.class);
     UserService userService;
+    Gson gson;
 
     public UserServlet(UserService userService) {
         this.userService = userService;
+        gson = new Gson();
     }
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String pathInfo = request.getPathInfo();
+        String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
+        Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
 
-        // Process profile get: /user/<userId>
-        if (pathInfo.matches("^/[a-zA-z0-9]+/*")) {
-            String[] split = pathInfo.split("/");
-            String userId = split[1];
-
-            Optional<UserDTO> userRes = userService.getUserDTO(userId);
-            if (userRes.isPresent()) {
-                UserDTO userDTO = userRes.get();
-
-                Gson gson = new Gson();
-                String responseBody = gson.toJson(userDTO, UserDTO.class);
-
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().write(responseBody);
-                return;
-            } else {
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Failed to retrieve user: " + userId);
-                return;
-            }
+        // Handle invalid request.
+        if (pathInfo.length != 2) {
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad request");
+            return;
         }
 
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        response.getWriter().write("Bad URI.");
+        // Handle request: /user/all
+        if (pathInfo.length == 2 && pathInfo[1].equals("all")) {
+            List<User> users = userService.getUsers();
+            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, users);
+            return;
+        }
+
+        // Handle request: /user/{id}
+        Long id = Long.valueOf(0);
+        try {
+            id = Long.valueOf(pathInfo[1]);
+        } catch (NumberFormatException e) {
+            logger.error("Error: " + e);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad user id.");
+            return;
+        }
+        if (pathInfo.length == 2 && Long.valueOf(pathInfo[1]) > 0) {
+            User user = userService.findUserById(id);
+            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, user);
+            return;
+        }
+
+        ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad request.");
         return;
     }
 
     @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response) {
+        // Handle request: /user
+        Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
+
+        // Authorize endpoint for Admin only.
+        if (!AuthorizationChecker.authorizeAdminUser(userId)) {
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Admin only.");
+            return;
+        }
+
+        // Create the User.
+        try {
+            User user = gson.fromJson(request.getReader(), User.class);
+            user = userService.saveUser(user);
+            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_CREATED, user);
+            return;
+        } catch (Exception e) {
+            logger.error("Error: ", e);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+            return;
+        }
+    }
+
+    @Override
     public void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String pathInfo = request.getPathInfo();
+        String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
+        Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
 
-        // Process profile update: /user/<userId>/update/profile
-        if (pathInfo.matches("^/[a-zA-z0-9]+/update/profile/*")) {
-            String[] split = pathInfo.split("/");
-            String userId = split[1];
-
-            StringBuilder stringBuilder = new StringBuilder();
-            request.getReader().lines().forEach(line -> {
-                stringBuilder.append(line);
-            });
-
-            Gson gson = new Gson();
-            UserDTO userDTO = gson.fromJson(stringBuilder.toString(), UserDTO.class);
-
-            Optional<User> userRes = userService.getUser(userId);
-            if (userRes.isPresent()) {
-                User user = userRes.get();
-
-                user.setFirstName(userDTO.getFirstName());
-                user.setLastName(userDTO.getLastName());
-                user.setPhoneNumber(userDTO.getPhoneNumber());
-
-                userService.updateUser(user);
-
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.setStatus(HttpServletResponse.SC_OK);
+        // Handle request: /user/{id}/updatePassword
+        if (pathInfo.length == 3 && pathInfo[2].equals("updatePassword")) {
+            try {
+                // TODO: Implement password update workflow.
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_NOT_IMPLEMENTED, "Not yet implemented.");
+                return;
+            } catch (Exception e) {
+                // TODO: Implement proper exception handling.
+                logger.error("Error: ", e);
                 return;
             }
-
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Failed to update user: " + userId + "\n");
-            response.getWriter().write(stringBuilder.toString());
-            return;
         }
 
-        // TODO: Process emails update: /user/<userId>/update/emails
-        if (pathInfo.matches("^/[a-zA-z0-9]+/update/emails/*")) {
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Not yet implemented.");
-            return;
+        // Handle request: /user/{id}/updateEmails
+        if (pathInfo.length == 3 && pathInfo[2].equals("updateEmails")) {
+            try {
+                // TODO: Implement emails update workflow.
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_NOT_IMPLEMENTED, "Not yet implemented.");
+                return;
+            } catch (Exception e) {
+                // TODO: Implement proper exception handling.
+                logger.error("Error: ", e);
+                return;
+            }
         }
 
-        // TODO: Process password update: /user/<userId>/update/password
-        if (pathInfo.matches("^/[a-zA-z0-9]+/update/password/*")) {
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Not yet implemented.");
-            return;
+        // Handle request: /user/{id}
+        if (pathInfo.length == 2) {
+            try {
+                // Get the User Id from the request path.
+                Long id = Long.valueOf(pathInfo[1]);
+
+                // Read the payload into object.
+                User user = gson.fromJson(request.getReader(), User.class);
+
+                // Update the User.
+                ResultStatus result = userService.updateUser(user);
+
+                switch (result) {
+                    case SUCCESS: ServletUtility.sendResponse(response, HttpServletResponse.SC_NO_CONTENT, ""); break;
+                    case FORBIDDEN: ServletUtility.sendResponse(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden."); break;
+                    case NOT_FOUND: ServletUtility.sendResponse(response, HttpServletResponse.SC_NOT_FOUND, "User not found."); break;
+                    default: ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+                }
+                return;
+            } catch (JsonSyntaxException e) {
+                logger.error("Error: ", e);
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON.");
+                return;
+            } catch (NumberFormatException e) {
+                logger.error("Error: ", e);
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid User Id.");
+                return;
+            } catch (Exception e) {
+                logger.error("Error: ", e);
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+                return;
+            }
         }
 
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        response.getWriter().write("Bad URI.");
+        ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad request.");
         return;
+    }
+
+    @Override
+    public void doDelete(HttpServletRequest request, HttpServletResponse response) {
+        // Handle request: /user/{userId}
+        String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
+        Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
+
+        if (pathInfo.length != 2) {
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad request.");
+            return;
+        }
+
+        try {
+            // Get the User Id from the request path.
+            Long deleteUserId = Long.valueOf(pathInfo[1]);
+
+            // Delete the User.
+            ResultStatus result = userService.deleteUserById(deleteUserId, userId);
+
+            switch (result) {
+                case SUCCESS: ServletUtility.sendResponse(response, HttpServletResponse.SC_NO_CONTENT, ""); break;
+                case FORBIDDEN: ServletUtility.sendResponse(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden."); break;
+                case NOT_FOUND: ServletUtility.sendResponse(response, HttpServletResponse.SC_NOT_FOUND, "User not found."); break;
+                default: ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+            }
+            return;
+        } catch (NumberFormatException e) {
+            logger.error("Error: ", e);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid user id.");
+            return;
+        } catch (Exception e) {
+            logger.error("Error: ", e);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+            return;
+        }
     }
 }

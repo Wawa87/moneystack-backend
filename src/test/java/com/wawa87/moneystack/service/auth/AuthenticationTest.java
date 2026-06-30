@@ -14,6 +14,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class AuthenticationTest {
@@ -66,14 +68,15 @@ public class AuthenticationTest {
             Argon2 argon2 = Argon2Util.getArgon2();
             UserService userService = new UserService(userDAO, argon2);
 
-            User user = userService.register(
-                    "testUser",
-                    "testUser@email.com",
-                    "Test",
-                    "User",
-                    "testpass",
-                    "17602221111"
-            );
+            User user = new User();
+            user.setUsername("testUser");
+            user.setEmails(new ArrayList<>(List.of("testUser@email.com")));
+            user.setFirstName("Test");
+            user.setLastName("User");
+            user.setPasswordHash("testpass");
+            user.setPhoneNumber("17602221111");
+
+            userService.register(user);
 
             String json = "{" +
                     "\"username\": \"testUser\"," +

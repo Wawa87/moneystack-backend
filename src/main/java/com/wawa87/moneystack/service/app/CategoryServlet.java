@@ -40,12 +40,12 @@ public class CategoryServlet extends HttpServlet {
             return;
         }
 
-        // Handle request: /categories/{categoryId}
+        // Handle request: /categories/{id}
         if (pathInfo.length == 2) {
-            Long categoryId = Long.valueOf(pathInfo[1]);
+            Long id = Long.valueOf(pathInfo[1]);
 
             try {
-                Category category = categoryService.findCategoryById(categoryId, userId);
+                Category category = categoryService.findCategoryById(id, userId);
                 if (category == null) category = new Category();
                 ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, category);
                 return;
@@ -179,32 +179,4 @@ public class CategoryServlet extends HttpServlet {
             return categoryData;
         }
     }
-
-//    private void sendResponse(HttpServletResponse response, int responseStatus, String message) {
-//        response.setContentType("application/json");
-//        response.setCharacterEncoding("UTF-8");
-//        response.setStatus(responseStatus);
-//        if (!message.isEmpty()) {
-//            try {
-//                response.getWriter().write("{\"message\": \"" + message + "\"}");
-//            } catch (IOException e) {
-//                sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
-//                throw new RuntimeException(e);
-//            }
-//        }
-//    }
-//
-//    private <T> void sendResponseObject(HttpServletResponse response, int responseStatus, Object responseObject) {
-//        response.setContentType("application/json");
-//        response.setCharacterEncoding("UTF-8");
-//        response.setStatus(responseStatus);
-//        if (responseObject != null) {
-//            try {
-//                response.getWriter().write(gson.toJson(responseObject));
-//            } catch (IOException e) {
-//                sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
-//                throw new RuntimeException(e);
-//            }
-//        }
-//    }
 }

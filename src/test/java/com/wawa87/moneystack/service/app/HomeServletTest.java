@@ -43,6 +43,7 @@ import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.List;
 
 public class HomeServletTest {
@@ -68,14 +69,15 @@ public class HomeServletTest {
             UserService userService = new UserService(userDAO, argon2);
 
             // Register the test user.
-            User user = userService.register(
-                    "cosmo",
-                    "kman@seinfeld.com",
-                    "Cosmo",
-                    "Kramer",
-                    "yoyoma",
-                    "+17602220101"
-            );
+            User user = new User();
+            user.setUsername("cosmo");
+            user.setEmails(new ArrayList<>(List.of("kman@seinfeld.com")));
+            user.setFirstName("Cosmo");
+            user.setLastName("Kramer");
+            user.setPasswordHash("yoyoma");
+            user.setPhoneNumber("+17602220101");
+
+            userService.register(user);
 
             String json = "{" +
                     "\"username\": \"cosmo\"," +
@@ -148,14 +150,15 @@ public class HomeServletTest {
             TransactionService transactionService = new TransactionService(transactionDAO);
 
             // Register the test user.
-            User user = userService.register(
-                    "cosmo",
-                    "kman@seinfeld.com",
-                    "Cosmo",
-                    "Kramer",
-                    "yoyoma",
-                    "+17602220101"
-            );
+            User user = new User();
+            user.setUsername("cosmo");
+            user.setEmails(new ArrayList<>(List.of("kman@seinfeld.com")));
+            user.setFirstName("Cosmo");
+            user.setLastName("Kramer");
+            user.setPasswordHash("yoyoma");
+            user.setPhoneNumber("+17602220101");
+
+            userService.register(user);
 
             Category category = new Category();
             category.setName("Housing");
