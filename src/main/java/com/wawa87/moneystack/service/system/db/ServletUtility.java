@@ -1,12 +1,15 @@
 package com.wawa87.moneystack.service.system.db;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.wawa87.moneystack.service.app.util.LocalDateTimeAdapter;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 public class ServletUtility {
-    private static Gson gson = new Gson();
+    private static Gson gson = new GsonBuilder().serializeNulls().registerTypeAdapter(LocalDateTime .class, new LocalDateTimeAdapter()).create();
 
     public static void sendResponse(HttpServletResponse response, int responseStatus, String message) {
         response.setContentType("application/json");

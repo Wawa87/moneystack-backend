@@ -136,7 +136,7 @@ public class App {
         context.addServlet(homeServlet, "/");
 
         ServletHolder profileServlet = new ServletHolder(new UserServlet(userService));
-        context.addServlet(profileServlet, "/user/*");
+        context.addServlet(profileServlet, "/users/*");
 
         ServletHolder usernameValidationServlet = new ServletHolder(new UsernameValidationServlet(userService));
         context.addServlet(usernameValidationServlet, "/validateUsername/*");

@@ -1,12 +1,15 @@
 package com.wawa87.moneystack.service.app;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import com.wawa87.moneystack.service.app.util.LocalDateTimeAdapter;
 import com.wawa87.moneystack.service.auth.AuthorizationChecker;
 import com.wawa87.moneystack.service.system.db.ResultStatus;
 import com.wawa87.moneystack.service.system.db.ServletUtility;
 import com.wawa87.moneystack.service.system.user.UserService;
 import com.wawa87.moneystack.service.system.user.dao.UserDTO;
+import com.wawa87.moneystack.service.system.user.dao.UserResponse;
 import com.wawa87.moneystack.service.system.user.model.User;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,7 +30,7 @@ public class UserServlet extends HttpServlet {
 
     public UserServlet(UserService userService) {
         this.userService = userService;
-        gson = new Gson();
+        this.gson = new GsonBuilder().serializeNulls().registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter()).create();
     }
 
     @Override
@@ -42,7 +47,20 @@ public class UserServlet extends HttpServlet {
         // Handle request: /user/all
         if (pathInfo.length == 2 && pathInfo[1].equals("all")) {
             List<User> users = userService.getUsers();
-            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, users);
+            List<UserResponse> usersResponse = new ArrayList<>();
+            users.forEach((it) -> {
+                UserResponse userResponse = new UserResponse();
+                userResponse.setId(it.getId());
+                userResponse.setUsername(it.getUsername());
+                userResponse.setEmails(it.getEmails());
+                userResponse.setFirstName(it.getFirstName());
+                userResponse.setLastName(it.getLastName());
+                userResponse.setPhoneNumber(it.getPhoneNumber());
+                userResponse.setCreatedAt(it.getCreatedAt());
+                userResponse.setUpdatedAt(it.getUpdatedAt());
+                usersResponse.add(userResponse);
+            });
+            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, usersResponse);
             return;
         }
 
