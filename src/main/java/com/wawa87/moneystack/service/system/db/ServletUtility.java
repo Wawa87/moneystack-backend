@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 public class ServletUtility {
-    private static Gson gson = new GsonBuilder().serializeNulls().registerTypeAdapter(LocalDateTime .class, new LocalDateTimeAdapter()).create();
+    public static Gson gson = new GsonBuilder().serializeNulls().registerTypeAdapter(LocalDateTime .class, new LocalDateTimeAdapter()).create();
 
     public static void sendResponse(HttpServletResponse response, int responseStatus, String message) {
         response.setContentType("application/json");

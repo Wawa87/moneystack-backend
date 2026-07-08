@@ -106,6 +106,12 @@ public class UserService {
         else return userOpt.get();
     }
 
+    public User findUserByUsername(String username) {
+        Optional<User> userOpt = userDAO.findByUsername(username);
+        if (userOpt.isEmpty()) return null;
+        else return userOpt.get();
+    }
+
 //    public int updateUser(User user) {
 //        return userDAO.update(user);
 //    }

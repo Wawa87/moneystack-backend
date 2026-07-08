@@ -178,7 +178,7 @@ public class UserServlet extends HttpServlet {
 
     @Override
     public void doDelete(HttpServletRequest request, HttpServletResponse response) {
-        // Handle request: /user/{userId}
+        // Handle request: /user/{id}
         String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
         Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
 

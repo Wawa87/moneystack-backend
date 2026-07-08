@@ -87,7 +87,7 @@ public class CategoryServlet extends HttpServlet {
 
     @Override
     public void doPut(HttpServletRequest request, HttpServletResponse response) {
-        // Handle request: /categories/{categoryId}
+        // Handle request: /categories/{id}
         String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
         Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
 
