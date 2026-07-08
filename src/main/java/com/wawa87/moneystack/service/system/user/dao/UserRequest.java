@@ -1,8 +1,11 @@
 package com.wawa87.moneystack.service.system.user.dao;
 
+import com.wawa87.moneystack.service.system.user.model.User;
+
+import java.util.ArrayList;
 import java.util.List;
 
-public class UserRegistration {
+public class UserRequest {
     private String username;
     private List<String> emails;
     private String firstName;
@@ -56,5 +59,16 @@ public class UserRegistration {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public static User convertToUser(UserRequest userRequest) {
+        User user = new User();
+        user.setUsername(userRequest.getUsername());
+        user.setEmails((ArrayList<String>) userRequest.getEmails());
+        user.setFirstName(userRequest.getFirstName());
+        user.setLastName(userRequest.getLastName());
+        user.setPhoneNumber(userRequest.getPhoneNumber());
+        user.setPasswordHash(userRequest.getPassword());
+        return user;
     }
 }

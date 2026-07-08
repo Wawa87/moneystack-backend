@@ -1,5 +1,7 @@
 package com.wawa87.moneystack.service.system.user.dao;
 
+import com.wawa87.moneystack.service.system.user.model.User;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -75,5 +77,18 @@ public class UserResponse {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public static UserResponse convertUserToResponse(User user) {
+        UserResponse userResponse = new UserResponse();
+        userResponse.setId(user.getId());
+        userResponse.setUsername(user.getUsername());
+        userResponse.setEmails(user.getEmails());
+        userResponse.setFirstName(user.getFirstName());
+        userResponse.setLastName(user.getLastName());
+        userResponse.setPhoneNumber(user.getPhoneNumber());
+        userResponse.setCreatedAt(user.getCreatedAt());
+        userResponse.setUpdatedAt(user.getUpdatedAt());
+        return userResponse;
     }
 }

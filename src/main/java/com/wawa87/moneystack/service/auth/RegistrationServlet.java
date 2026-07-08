@@ -1,8 +1,10 @@
 package com.wawa87.moneystack.service.auth;
 
 import com.google.gson.Gson;
+import com.wawa87.moneystack.service.system.db.ServletUtility;
 import com.wawa87.moneystack.service.system.user.UserService;
-import com.wawa87.moneystack.service.system.user.dao.UserRegistration;
+import com.wawa87.moneystack.service.system.user.dao.UserRequest;
+import com.wawa87.moneystack.service.system.user.dao.UserResponse;
 import com.wawa87.moneystack.service.system.user.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -24,34 +26,18 @@ public class RegistrationServlet extends HttpServlet {
     }
 
     @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        try (BufferedReader bufferedReader = request.getReader()) {
-            bufferedReader.lines().forEach(line -> { stringBuilder.append(line);});
-        }
-
-        Gson gson = new Gson();
-        UserRegistration userRegistration = gson.fromJson(stringBuilder.toString(), UserRegistration.class);
-
-        User newUser = new User();
-        newUser.setUsername(userRegistration.getUsername());
-        newUser.setFirstName(userRegistration.getFirstName());
-        newUser.setLastName(userRegistration.getLastName());
-        newUser.setEmails((ArrayList<String>) userRegistration.getEmails());
-        newUser.setPhoneNumber(userRegistration.getPhoneNumber());
-        newUser.setPasswordHash(userRegistration.getPassword());
-
-        userService.register(newUser);
-
-        response.setContentType("text/json;charset=utf-8");
-
-        if (newUser != null) {
-            response.setStatus(HttpServletResponse.SC_CREATED);
-            response.getWriter().print("{\"message\": \"Successfully registered user: " + newUser.getUsername() + "\"}");
-        } else {
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().print("{\"message\": \"Failed to register user: " + newUser.getUsername() + "\"}");
+    public void doPost(HttpServletRequest request, HttpServletResponse response) {
+        // Handle request: /register
+        // Create the User.
+        try {
+            UserRequest userRequest = ServletUtility.gson.fromJson(request.getReader(), UserRequest.class);
+            UserResponse userResponse = userService.saveNewUser(userRequest);
+            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_CREATED, userResponse);
+            return;
+        } catch (Exception e) {
+            logger.error("Error: ", e);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+            return;
         }
     }
 }

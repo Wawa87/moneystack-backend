@@ -9,6 +9,7 @@ import com.wawa87.moneystack.service.system.db.ResultStatus;
 import com.wawa87.moneystack.service.system.db.ServletUtility;
 import com.wawa87.moneystack.service.system.user.UserService;
 import com.wawa87.moneystack.service.system.user.dao.UserDTO;
+import com.wawa87.moneystack.service.system.user.dao.UserRequest;
 import com.wawa87.moneystack.service.system.user.dao.UserResponse;
 import com.wawa87.moneystack.service.system.user.model.User;
 import jakarta.servlet.http.HttpServlet;
@@ -44,27 +45,19 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
-        // Handle request: /user/all
+        // Handle request: /users/all
         if (pathInfo.length == 2 && pathInfo[1].equals("all")) {
             List<User> users = userService.getUsers();
             List<UserResponse> usersResponse = new ArrayList<>();
             users.forEach((it) -> {
-                UserResponse userResponse = new UserResponse();
-                userResponse.setId(it.getId());
-                userResponse.setUsername(it.getUsername());
-                userResponse.setEmails(it.getEmails());
-                userResponse.setFirstName(it.getFirstName());
-                userResponse.setLastName(it.getLastName());
-                userResponse.setPhoneNumber(it.getPhoneNumber());
-                userResponse.setCreatedAt(it.getCreatedAt());
-                userResponse.setUpdatedAt(it.getUpdatedAt());
+                UserResponse userResponse = UserResponse.convertUserToResponse(it);
                 usersResponse.add(userResponse);
             });
             ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, usersResponse);
             return;
         }
 
-        // Handle request: /user/{id}
+        // Handle request: /users/{id}
         Long id = Long.valueOf(0);
         try {
             id = Long.valueOf(pathInfo[1]);
@@ -73,9 +66,10 @@ public class UserServlet extends HttpServlet {
             ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad user id.");
             return;
         }
+
         if (pathInfo.length == 2 && Long.valueOf(pathInfo[1]) > 0) {
-            User user = userService.findUserById(id);
-            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, user);
+            UserResponse userResponse = userService.findUserById(id);
+            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, userResponse);
             return;
         }
 
@@ -85,20 +79,20 @@ public class UserServlet extends HttpServlet {
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) {
-        // Handle request: /user
+        // Handle request: /users
         Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
 
         // Authorize endpoint for Admin only.
-        if (!AuthorizationChecker.authorizeAdminUser(userId)) {
+        if (!AuthorizationChecker.authorizeAdminUsername(request.getAttribute("subject").toString())) {
             ServletUtility.sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Admin only.");
             return;
         }
 
         // Create the User.
         try {
-            User user = gson.fromJson(request.getReader(), User.class);
-            user = userService.saveUser(user);
-            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_CREATED, user);
+            UserRequest userRequest = gson.fromJson(request.getReader(), UserRequest.class);
+            UserResponse userResponse = userService.saveNewUser(userRequest);
+            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_CREATED, userResponse);
             return;
         } catch (Exception e) {
             logger.error("Error: ", e);

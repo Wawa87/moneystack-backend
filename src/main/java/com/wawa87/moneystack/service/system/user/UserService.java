@@ -7,6 +7,8 @@ import com.wawa87.moneystack.service.system.budget.BudgetService;
 import com.wawa87.moneystack.service.system.db.ResultStatus;
 import com.wawa87.moneystack.service.system.user.dao.UserDAO;
 import com.wawa87.moneystack.service.system.user.dao.UserDTO;
+import com.wawa87.moneystack.service.system.user.dao.UserRequest;
+import com.wawa87.moneystack.service.system.user.dao.UserResponse;
 import com.wawa87.moneystack.service.system.user.model.User;
 import de.mkammerer.argon2.Argon2;
 import org.slf4j.Logger;
@@ -56,6 +58,10 @@ public class UserService {
         return register(user);
     }
 
+    public UserResponse saveNewUser(UserRequest userRequest) {
+        return UserResponse.convertUserToResponse(register(UserRequest.convertToUser(userRequest)));
+    }
+
     public boolean authenticate(String username, String password) {
         Optional<User> res = userDAO.findByUsername(username);
         if (res.isPresent()) {
@@ -100,10 +106,10 @@ public class UserService {
         return Optional.of(userDTO);
     }
 
-    public User findUserById(Long id) {
+    public UserResponse findUserById(Long id) {
         Optional<User> userOpt = userDAO.findById(id);
         if (userOpt.isEmpty()) return null;
-        else return userOpt.get();
+        return UserResponse.convertUserToResponse(userOpt.get());
     }
 
     public User findUserByUsername(String username) {
@@ -150,6 +156,7 @@ public class UserService {
     }
 
     public List<User> getUsers() {
+        // TODO: Implement authorization check.
         return userDAO.findAll();
     }
 

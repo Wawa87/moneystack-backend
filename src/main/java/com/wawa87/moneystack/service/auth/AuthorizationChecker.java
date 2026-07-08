@@ -11,4 +11,9 @@ public class AuthorizationChecker {
         // TODO: Implement proper admin check.
         return adminId.equals("dev");
     }
+
+    public static boolean authorizeAdminUsername(String username) {
+        // TODO: Implement proper admin check.
+        return username.equals("dev");
+    }
 }
