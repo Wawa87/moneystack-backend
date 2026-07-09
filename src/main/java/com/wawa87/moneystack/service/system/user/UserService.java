@@ -62,13 +62,17 @@ public class UserService {
         return UserResponse.convertUserToResponse(register(UserRequest.convertToUser(userRequest)));
     }
 
-    public boolean authenticate(String username, String password) {
+    public UserResponse authenticate(String username, String password) {
         Optional<User> res = userDAO.findByUsername(username);
         if (res.isPresent()) {
             User user = res.get();
-            return argon2.verify(user.getPasswordHash(), password);
+            boolean validPw = argon2.verify(user.getPasswordHash(), password);
+
+            if (validPw) {
+                return UserResponse.convertUserToResponse(user);
+            }
         }
-        return false;
+        return null;
     }
 
     public boolean changePassword(String username, String oldPassword, String newPassword) {
@@ -83,6 +87,23 @@ public class UserService {
             }
         }
         return false;
+    }
+
+    public UserResponse findUserById(Long id) {
+        Optional<User> userOpt = userDAO.findById(id);
+        if (userOpt.isEmpty()) return null;
+        return UserResponse.convertUserToResponse(userOpt.get());
+    }
+
+    public User findUserByUsername(String username) {
+        Optional<User> userOpt = userDAO.findByUsername(username);
+        if (userOpt.isEmpty()) return null;
+        else return userOpt.get();
+    }
+
+    public List<User> getUsers() {
+        // TODO: Implement authorization check.
+        return userDAO.findAll();
     }
 
     public Optional<User> getUser(String username) {
@@ -105,22 +126,6 @@ public class UserService {
         }
         return Optional.of(userDTO);
     }
-
-    public UserResponse findUserById(Long id) {
-        Optional<User> userOpt = userDAO.findById(id);
-        if (userOpt.isEmpty()) return null;
-        return UserResponse.convertUserToResponse(userOpt.get());
-    }
-
-    public User findUserByUsername(String username) {
-        Optional<User> userOpt = userDAO.findByUsername(username);
-        if (userOpt.isEmpty()) return null;
-        else return userOpt.get();
-    }
-
-//    public int updateUser(User user) {
-//        return userDAO.update(user);
-//    }
 
     public ResultStatus updateUser(User user) {
         Optional<User> userOpt = userDAO.findById(user.getId());
@@ -153,11 +158,6 @@ public class UserService {
         int result = userDAO.deleteById(id);
         if (result == 1) return ResultStatus.SUCCESS;
         else return ResultStatus.ERROR;
-    }
-
-    public List<User> getUsers() {
-        // TODO: Implement authorization check.
-        return userDAO.findAll();
     }
 
     private String hashPw(String password) {

@@ -1,8 +1,13 @@
 package com.wawa87.moneystack.service.auth;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import com.wawa87.moneystack.service.system.db.ServletUtility;
 import com.wawa87.moneystack.service.system.user.UserService;
 import com.wawa87.moneystack.service.system.user.dao.UserDTO;
+import com.wawa87.moneystack.service.system.user.dao.UserResponse;
+import jakarta.servlet.Servlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,50 +28,36 @@ public class AuthenticationServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        StringBuilder stringBuilder = new StringBuilder();
+        // Handle request: /login
+        try {
+            UserCredentials userCredentials = ServletUtility.gson.fromJson(request.getReader(), UserCredentials.class);
+            UserResponse userResponse = this.userService.authenticate(userCredentials.username, userCredentials.password);
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+            if (userResponse != null) {
+                String token = JwtUtil.generateToken(userCredentials.username);
 
-        try (BufferedReader bufferedReader = request.getReader()) {
-            bufferedReader.lines().forEach(line -> { stringBuilder.append(line);});
-        }
+                String cookieStr = "access_token=" + token + "; SameSite=None; Secure; HttpOnly; Path=/; Max-Age=900";
+                response.setHeader("Set-Cookie", cookieStr);
 
-        String payload = stringBuilder.toString();
-
-        if (payload.trim().length() == 0) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("{ \"message\": \"Bad credentials.\"}");
-            return;
-        }
-
-        Gson gson = new Gson();
-        UserCredentials userCredentials = gson.fromJson(stringBuilder.toString(), UserCredentials.class);
-
-        if (this.userService.authenticate(userCredentials.username, userCredentials.password)) {
-            String token = JwtUtil.generateToken(userCredentials.username);
-
-            String cookieStr = "access_token=" + token + "; SameSite=None; Secure; HttpOnly; Path=/; Max-Age=900";
-            response.setHeader("Set-Cookie", cookieStr);
-            response.setContentType("application/json");
-
-            Optional<UserDTO> userRes = userService.getUserDTO(userCredentials.username);
-            if (userRes.isPresent()) {
-                UserDTO userDTO = userRes.get();
-
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().write(gson.toJson(userDTO, UserDTO.class));
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, userResponse);
+                return;
+            } else {
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid username or password.");
                 return;
             }
-        } else {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Authentication failed for username: " + userCredentials.username);
+        } catch (JsonSyntaxException e) {
+            logger.error(e.getMessage());
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "JSON syntax exception.");
+            return;
+        } catch (JsonIOException e) {
+            logger.error(e.getMessage());
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "JSON IO exception.");
+            return;
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
             return;
         }
-
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        response.getWriter().write("Bad URI or user not found.");
-        return;
     }
 
     private class UserCredentials {

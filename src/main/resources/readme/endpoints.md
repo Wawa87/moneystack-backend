@@ -2,10 +2,13 @@
 
 ## AuthenticationFilter
 Filters requests to check for the presence of the JWT cookie.
+
 JWT cookie key: 'access_token'
 
 If found, sets the two following request attributes:
+
 userId: The user's Long id number.
+
 subject: The registered username.
 
 Exceptions for the following URL paths used for registration and login:
@@ -22,7 +25,9 @@ Access: Admin only
 
 ### POST /user
 Access: Admin only
+
 Payload:
+
 `
 {
     "username": <username>,
@@ -36,7 +41,9 @@ Payload:
 
 ### PUT /user/{id}
 Update user details. Excludes emails and password which use separate workflow.
+
 Payload:
+
 `
 {
     "username": <username>,
@@ -56,13 +63,16 @@ Payload:
 
 ### DELETE /user/{id}
 // TODO: Implement user delete endpoint.
+
 Access: Admin only
 
 ## RegistrationServlet
 Servlet for User registration.
 
 ### POST /register
+
 Payload:
+
 `
 {
     "username": <username>,
@@ -91,7 +101,9 @@ Servlet for validating a username for availability and format.
 
 ## POST /validateUsername
 Validate the provided username.
+
 Payload:
+
 `
 {
     "username": <username>
@@ -109,7 +121,9 @@ Get the specific category for the current User.
 
 ### POST /categories
 Create a new Category.
+
 Payload:
+
 `
 {
     "name": <name>,
@@ -119,7 +133,9 @@ Payload:
 
 ### PUT /categories/{id}
 Update the category.
+
 Payload:
+
 `
 {
     "name": <name>,
