@@ -3,10 +3,9 @@ package com.wawa87.moneystack.service.system.user;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
-import com.wawa87.moneystack.service.system.budget.BudgetService;
+import com.wawa87.moneystack.service.auth.UsernameValidationResponse;
 import com.wawa87.moneystack.service.system.db.ResultStatus;
 import com.wawa87.moneystack.service.system.user.dao.UserDAO;
-import com.wawa87.moneystack.service.system.user.dao.UserDTO;
 import com.wawa87.moneystack.service.system.user.dao.UserRequest;
 import com.wawa87.moneystack.service.system.user.dao.UserResponse;
 import com.wawa87.moneystack.service.system.user.model.User;
@@ -14,7 +13,6 @@ import de.mkammerer.argon2.Argon2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +28,9 @@ public class UserService {
     }
 
     public User register(User user) {
+        // Transform username to lower case.
+        user.setUsername(user.getUsername().toLowerCase());
+
         // Process phone number formatting.
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
         try {
@@ -52,10 +53,6 @@ public class UserService {
             return user;
         }
         return null;
-    }
-
-    public User saveUser(User user) {
-        return register(user);
     }
 
     public UserResponse saveNewUser(UserRequest userRequest) {
@@ -95,10 +92,19 @@ public class UserService {
         return UserResponse.convertUserToResponse(userOpt.get());
     }
 
-    public User findUserByUsername(String username) {
+    public UserResponse findUserByUsername(String username) {
         Optional<User> userOpt = userDAO.findByUsername(username);
         if (userOpt.isEmpty()) return null;
-        else return userOpt.get();
+        return UserResponse.convertUserToResponse(userOpt.get());
+    }
+
+    public UsernameValidationResponse validateNewUsername(String username) {
+        if (username == null || username.isBlank()) return UsernameValidationResponse.newValidationResponse(false, "Username is blank."); // Check for null, empty, or whitespace.
+        if (!username.matches("^[a-zA-Z0-9]+$")) return UsernameValidationResponse.newValidationResponse(false, "Username must be alphanumeric characters only."); // Check for alphanumeric characters only.
+
+        Optional<User> userOpt = userDAO.findByUsername(username.toLowerCase());
+        if (userOpt.isPresent()) return UsernameValidationResponse.newValidationResponse(false, "Username is already taken."); // Check if username is already taken.
+        return UsernameValidationResponse.newValidationResponse(true, "Username is available: " + username.toLowerCase());
     }
 
     public List<User> getUsers() {
@@ -106,28 +112,11 @@ public class UserService {
         return userDAO.findAll();
     }
 
-    public Optional<User> getUser(String username) {
-        Optional<User> res = userDAO.findByUsername(username);
-        return res;
-    }
-
-    public Optional<UserDTO> getUserDTO(String username) {
-        Optional<User> res = userDAO.findByUsername(username);
-        UserDTO userDTO = new UserDTO();
-
-        if (res.isPresent()) {
-            User user = res.get();
-            userDTO.setId(user.getId());
-            userDTO.setUsername(user.getUsername());
-            userDTO.setFirstName(user.getFirstName());
-            userDTO.setLastName(user.getLastName());
-            userDTO.setEmails(user.getEmails());
-            userDTO.setPhoneNumber(user.getPhoneNumber());
-        }
-        return Optional.of(userDTO);
-    }
-
     public ResultStatus updateUser(User user) {
+        // Transform username to lower case.
+        user.setUsername(user.getUsername().toLowerCase());
+
+        // Return matching User record from database.
         Optional<User> userOpt = userDAO.findById(user.getId());
         if (userOpt.isEmpty()) return ResultStatus.NOT_FOUND; // Return not found error.
         // TODO: Implement authorization check.

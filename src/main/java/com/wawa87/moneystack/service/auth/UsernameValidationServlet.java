@@ -1,5 +1,6 @@
 package com.wawa87.moneystack.service.auth;
 
+import com.google.gson.JsonSyntaxException;
 import com.wawa87.moneystack.service.system.db.ServletUtility;
 import com.wawa87.moneystack.service.system.user.UserService;
 import com.wawa87.moneystack.service.system.user.model.User;
@@ -26,31 +27,27 @@ public class UsernameValidationServlet extends HttpServlet {
 
         try {
             UsernameValidationRequest usernameValidationRequest = ServletUtility.gson.fromJson(request.getReader(), UsernameValidationRequest.class);
+            UsernameValidationResponse usernameValidationResponse = this.userService.validateNewUsername(usernameValidationRequest.getUsername());
 
-            if (!validFormat(usernameValidationRequest.getUsername())) {
-                ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Username must be alphanumeric only.");
-                return;
-            }
-
-            User user = this.userService.findUserByUsername(usernameValidationRequest.getUsername().toLowerCase());
-
-            if (user != null) {
-                ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "true");
+            if (usernameValidationResponse.getResult()) {
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, usernameValidationResponse);
                 return;
             } else {
-                ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "false");
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, usernameValidationResponse);
                 return;
             }
-        } catch (IOException e) {
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad payload or username.");
+        } catch (JsonSyntaxException e) {
+            logger.error("Error: ", e);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON.");
+            return;
+        } catch (NumberFormatException e) {
+            logger.error("Error: ", e);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid User Id.");
             return;
         } catch (Exception e) {
+            logger.error("Error: ", e);
             ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
             return;
         }
-    }
-
-    private boolean validFormat(String username) {
-        return username.matches("^[a-zA-Z0-9]+$");
     }
 }

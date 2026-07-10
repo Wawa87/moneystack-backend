@@ -128,14 +128,11 @@ public class App {
         ServletHolder registrationServlet = new ServletHolder(new RegistrationServlet(userService));
         context.addServlet(registrationServlet, "/register");
 
-        ServletHolder homeServlet = new ServletHolder(new HomeServlet(userService, budgetService, monthService, transactionService));
-        context.addServlet(homeServlet, "/");
-
         ServletHolder profileServlet = new ServletHolder(new UserServlet(userService));
         context.addServlet(profileServlet, "/users/*");
 
         ServletHolder usernameValidationServlet = new ServletHolder(new UsernameValidationServlet(userService));
-        context.addServlet(usernameValidationServlet, "/validateUsername");
+        context.addServlet(usernameValidationServlet, "/validateNewUsername");
 
         ServletHolder categoryServlet = new ServletHolder(new CategoryServlet(categoryService));
         context.addServlet(categoryServlet, "/categories/*");

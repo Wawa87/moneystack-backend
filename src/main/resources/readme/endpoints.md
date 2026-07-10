@@ -99,14 +99,23 @@ Payload:
 ## UsernameValidationServlet
 Servlet for validating a username for availability and format.
 
-## POST /validateUsername
-Validate the provided username.
+### POST /validateNewUsername
+Validate the provided new username for availability.
 
 Payload:
 
 `
 {
     "username": <username>
+}
+`
+
+Response:
+
+`
+{
+    "result": <true/false>,
+    "message": <message>
 }
 `
 

@@ -1,7 +1,9 @@
 package com.wawa87.moneystack.service.app;
 
 import com.wawa87.moneystack.service.auth.JwtUtil;
+import com.wawa87.moneystack.service.system.db.ServletUtility;
 import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.dao.UserResponse;
 import com.wawa87.moneystack.service.system.user.model.User;
 import jakarta.servlet.*;
 import jakarta.servlet.http.Cookie;
@@ -36,20 +38,19 @@ public class AuthenticationFilter extends HttpFilter {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals("access_token")) {
                     String subject = JwtUtil.validateAndGetSubject(cookie.getValue());
-                    Optional<User> userOpt = userService.getUser(subject);
+                    UserResponse userResponse = this.userService.findUserByUsername(subject);
 
-                    if (userOpt.isPresent()) {
-                        request.setAttribute("userId", userOpt.get().getId());
+                    // Valid subject is in the token. Add User attributes.
+                    if (userResponse != null) {
+                        request.setAttribute("subject", subject);
+                        request.setAttribute("userId", userResponse.getId());
+                        filterChain.doFilter(request, response);
+                        return;
                     }
-                    request.setAttribute("subject", subject);
-
-                    filterChain.doFilter(request, response);
-                    return;
                 }
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
             }
         }
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        return;
     }
 }
