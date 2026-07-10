@@ -1,5 +1,7 @@
 package com.wawa87.moneystack.service.system.user.dao;
 
+import com.wawa87.moneystack.service.system.exceptions.DatabaseException;
+import com.wawa87.moneystack.service.system.exceptions.InternalServerException;
 import com.wawa87.moneystack.service.system.user.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +43,7 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public Optional<User> save(User user) {
+    public Optional<User> save(User user) throws Exception {
         String sql = "INSERT INTO " + TABLE + " ("
                 + F_USERNAME + ","
                 + F_EMAILS + ","
@@ -73,7 +75,7 @@ public class UserDAOImpl implements UserDAO {
             }
         } catch (SQLException e) {
             logger.error("SQLException: ", e);
-            throw new RuntimeException(e.getMessage());
+            throw new Exception(e.getMessage());
         }
     }
 
@@ -118,17 +120,17 @@ public class UserDAOImpl implements UserDAO {
         String sql = "SELECT * FROM " + TABLE;
 
         List<User> users = new ArrayList<>();
+
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    users.add(mapRow(rs));
-                }
-                return users;
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                users.add(mapRow(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Failed to retrieve users.", e);
+            throw new DatabaseException("Failed to retrive users.", e);
         }
-        return List.of();
+        return users;
     }
 
     @Override

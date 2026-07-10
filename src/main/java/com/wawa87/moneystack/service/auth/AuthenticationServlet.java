@@ -1,22 +1,17 @@
 package com.wawa87.moneystack.service.auth;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.wawa87.moneystack.service.system.db.ServletUtility;
 import com.wawa87.moneystack.service.system.user.UserService;
-import com.wawa87.moneystack.service.system.user.dao.UserDTO;
-import com.wawa87.moneystack.service.system.user.dao.UserResponse;
-import jakarta.servlet.Servlet;
+import com.wawa87.moneystack.service.system.user.model.UserResponse;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Optional;
 
 public class AuthenticationServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationServlet.class);

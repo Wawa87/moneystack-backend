@@ -1,10 +1,8 @@
 package com.wawa87.moneystack.service.app;
 
 import com.wawa87.moneystack.service.auth.JwtUtil;
-import com.wawa87.moneystack.service.system.db.ServletUtility;
 import com.wawa87.moneystack.service.system.user.UserService;
-import com.wawa87.moneystack.service.system.user.dao.UserResponse;
-import com.wawa87.moneystack.service.system.user.model.User;
+import com.wawa87.moneystack.service.system.user.model.UserResponse;
 import jakarta.servlet.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpFilter;
@@ -14,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Optional;
 
 public class AuthenticationFilter extends HttpFilter {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);

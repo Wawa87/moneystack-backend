@@ -3,7 +3,7 @@ package com.wawa87.moneystack.service.system.user;
 import com.wawa87.moneystack.service.auth.Argon2Util;
 import com.wawa87.moneystack.service.system.db.PGUtil;
 import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
-import com.wawa87.moneystack.service.system.user.dao.UserResponse;
+import com.wawa87.moneystack.service.system.user.model.UserResponse;
 import com.wawa87.moneystack.service.system.user.model.User;
 import de.mkammerer.argon2.Argon2;
 import org.junit.jupiter.api.Assertions;
@@ -13,7 +13,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class UserServiceTest {
     @Test

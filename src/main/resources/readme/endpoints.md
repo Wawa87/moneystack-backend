@@ -40,7 +40,9 @@ Payload:
 `
 
 ### PUT /user/{id}
-Update user details. Excludes emails and password which use separate workflow.
+Update user details. Restricted to admin-only - there are separate workflows for users to update key info like emails, password, and phone number.
+
+Access: Admin only
 
 Payload:
 
@@ -60,6 +62,9 @@ Payload:
 
 ### PUT /user/{id}/updateEmails
 // TODO: Implement email update workflow.
+
+### PUT /user/{id}/updatePhoneNumber
+// TODO: Implement phone number update workflow.
 
 ### DELETE /user/{id}
 // TODO: Implement user delete endpoint.

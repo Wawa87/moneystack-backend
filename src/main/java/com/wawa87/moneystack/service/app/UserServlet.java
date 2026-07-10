@@ -5,13 +5,13 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.wawa87.moneystack.service.app.util.LocalDateTimeAdapter;
 import com.wawa87.moneystack.service.auth.AuthorizationChecker;
+import com.wawa87.moneystack.service.system.exceptions.ApiException;
 import com.wawa87.moneystack.service.system.db.ResultStatus;
 import com.wawa87.moneystack.service.system.db.ServletUtility;
 import com.wawa87.moneystack.service.system.user.UserService;
-import com.wawa87.moneystack.service.system.user.dao.UserDTO;
-import com.wawa87.moneystack.service.system.user.dao.UserRequest;
-import com.wawa87.moneystack.service.system.user.dao.UserResponse;
-import com.wawa87.moneystack.service.system.user.model.User;
+import com.wawa87.moneystack.service.system.user.model.RegistrationResult;
+import com.wawa87.moneystack.service.system.user.model.UserRequest;
+import com.wawa87.moneystack.service.system.user.model.UserResponse;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,9 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class UserServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(UserServlet.class);
@@ -47,13 +45,15 @@ public class UserServlet extends HttpServlet {
 
         // Handle request: /users/all
         if (pathInfo.length == 2 && pathInfo[1].equals("all")) {
-            List<User> users = userService.getUsers();
-            List<UserResponse> usersResponse = new ArrayList<>();
-            users.forEach((it) -> {
-                UserResponse userResponse = UserResponse.convertUserToResponse(it);
-                usersResponse.add(userResponse);
-            });
-            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, usersResponse);
+            try {
+                List<UserResponse> usersResponse = userService.getUsers(String.valueOf(request.getAttribute("username")));
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, usersResponse);
+            } catch (ApiException e) {
+                ServletUtility.sendResponse(response, e.getStatusCode(), e.getMessage());
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            }
             return;
         }
 
@@ -90,9 +90,14 @@ public class UserServlet extends HttpServlet {
 
         // Create the User.
         try {
-            UserRequest userRequest = gson.fromJson(request.getReader(), UserRequest.class);
-            UserResponse userResponse = userService.saveNewUser(userRequest);
-            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_CREATED, userResponse);
+            UserRequest userRequest = gson.fromJson(request.getReader(), UserRequest.class); // Read the payload into UserRequest object.
+            RegistrationResult registrationResult = userService.register(userRequest); // Register the new User.
+
+            if (registrationResult.getResult()) {
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_CREATED, registrationResult.getUserResponse());
+                return;
+            }
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, registrationResult.getMessage());
             return;
         } catch (Exception e) {
             logger.error("Error: ", e);
@@ -132,17 +137,36 @@ public class UserServlet extends HttpServlet {
             }
         }
 
+        // Handle request: /user/{id}/updatePhoneNumber
+        if (pathInfo.length == 3 && pathInfo[2].equals("updatePhoneNumber")) {
+            try {
+                // TODO: Implement phone number update workflow.
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_NOT_IMPLEMENTED, "Not yet implemented.");
+                return;
+            } catch (Exception e) {
+                // TODO: Implement proper exception handling.
+                logger.error("Error: ", e);
+                return;
+            }
+        }
+
         // Handle request: /user/{id}
         if (pathInfo.length == 2) {
             try {
+                // Authorize Admin only.
+                if (!AuthorizationChecker.authorizeAdminUsername(request.getAttribute("subject").toString())) {
+                    ServletUtility.sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Admin only.");
+                    return;
+                }
+
                 // Get the User Id from the request path.
                 Long id = Long.valueOf(pathInfo[1]);
 
                 // Read the payload into object.
-                User user = gson.fromJson(request.getReader(), User.class);
+                UserRequest userRequest = ServletUtility.gson.fromJson(request.getReader(), UserRequest.class);
 
                 // Update the User.
-                ResultStatus result = userService.updateUser(user);
+                ResultStatus result = userService.updateUser(id, userRequest);
 
                 switch (result) {
                     case SUCCESS: ServletUtility.sendResponse(response, HttpServletResponse.SC_NO_CONTENT, ""); break;

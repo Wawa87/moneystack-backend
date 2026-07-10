@@ -1,6 +1,4 @@
-package com.wawa87.moneystack.service.system.user.dao;
-
-import com.wawa87.moneystack.service.system.user.model.User;
+package com.wawa87.moneystack.service.system.user.model;
 
 import java.time.LocalDateTime;
 import java.util.List;

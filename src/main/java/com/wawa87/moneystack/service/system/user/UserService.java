@@ -3,16 +3,20 @@ package com.wawa87.moneystack.service.system.user;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
+import com.wawa87.moneystack.service.auth.AuthorizationChecker;
 import com.wawa87.moneystack.service.auth.UsernameValidationResponse;
+import com.wawa87.moneystack.service.system.exceptions.ValidationException;
 import com.wawa87.moneystack.service.system.db.ResultStatus;
+import com.wawa87.moneystack.service.system.user.model.RegistrationResult;
 import com.wawa87.moneystack.service.system.user.dao.UserDAO;
-import com.wawa87.moneystack.service.system.user.dao.UserRequest;
-import com.wawa87.moneystack.service.system.user.dao.UserResponse;
+import com.wawa87.moneystack.service.system.user.model.UserRequest;
+import com.wawa87.moneystack.service.system.user.model.UserResponse;
 import com.wawa87.moneystack.service.system.user.model.User;
 import de.mkammerer.argon2.Argon2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,36 +31,51 @@ public class UserService {
         this.argon2 = argon2;
     }
 
-    public User register(User user) {
+    public RegistrationResult register(UserRequest userRequest) {
         // Transform username to lower case.
-        user.setUsername(user.getUsername().toLowerCase());
+        userRequest.setUsername(userRequest.getUsername().toLowerCase());
+
+        // Validate available username.
+        UsernameValidationResponse usernameValidationResponse = validateNewUsername(userRequest.getUsername());
+        if (!usernameValidationResponse.getResult()) {
+            return RegistrationResult.newRegistrationResult(null , false, usernameValidationResponse.getMessage());
+        }
 
         // Process phone number formatting.
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
         try {
-            Phonenumber.PhoneNumber number = phoneNumberUtil.parse(user.getPhoneNumber(), "US");
+            Phonenumber.PhoneNumber number = phoneNumberUtil.parse(userRequest.getPhoneNumber(), "US");
             if (phoneNumberUtil.isValidNumber(number)) {
-                user.setPhoneNumber(phoneNumberUtil.format(number, PhoneNumberUtil.PhoneNumberFormat.E164));
+                userRequest.setPhoneNumber(phoneNumberUtil.format(number, PhoneNumberUtil.PhoneNumberFormat.E164));
+            } else {
+                return RegistrationResult.newRegistrationResult(null, false, "Phone number validation failed.");
             }
         } catch (NumberParseException e) {
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
+            return RegistrationResult.newRegistrationResult(null, false, "Phone number validation failed.");
         }
 
         // Hash the password.
-        String hash = hashPw(user.getPasswordHash());
-        user.setPasswordHash(hash);
+        String hash = hashPw(userRequest.getPassword());
+        userRequest.setPassword(hash);
 
         // Save and return User.
-        Optional<User> res = userDAO.save(user);
-        if (res.isPresent()) {
-            user = res.get();
-            return user;
-        }
-        return null;
-    }
+        try {
+            User user = UserRequest.convertToUser(userRequest);
+            Optional<User> res = userDAO.save(user);
 
-    public UserResponse saveNewUser(UserRequest userRequest) {
-        return UserResponse.convertUserToResponse(register(UserRequest.convertToUser(userRequest)));
+            if (res.isPresent()) {
+                user = res.get();
+
+                // Create response object.
+                UserResponse userResponse = UserResponse.convertUserToResponse(user);
+                return new RegistrationResult(userResponse, true, "Registered new user: " + userResponse.getUsername());
+            } else {
+                return new RegistrationResult(null, false, "Error registering new user: " + userRequest.getUsername());
+            }
+        } catch (Exception e) {
+            return new RegistrationResult(null, false, "Error registering new user: " + userRequest.getUsername());
+        }
     }
 
     public UserResponse authenticate(String username, String password) {
@@ -107,27 +126,36 @@ public class UserService {
         return UsernameValidationResponse.newValidationResponse(true, "Username is available: " + username.toLowerCase());
     }
 
-    public List<User> getUsers() {
-        // TODO: Implement authorization check.
-        return userDAO.findAll();
+    public List<UserResponse> getUsers(String username) {
+        // TODO: Implement proper authorization check.
+        if (!AuthorizationChecker.authorizeAdminUsername(username)) {
+            throw new ValidationException("Unauthorized. Admin access only.");
+        }
+
+        List<User> users = userDAO.findAll();
+        List<UserResponse> usersResponse = new ArrayList<>();
+        users.forEach((it) -> {
+            usersResponse.add(UserResponse.convertUserToResponse(it));
+        });
+        return usersResponse;
     }
 
-    public ResultStatus updateUser(User user) {
+    public ResultStatus updateUser(Long id, UserRequest userRequest) {
         // Transform username to lower case.
-        user.setUsername(user.getUsername().toLowerCase());
+        userRequest.setUsername(userRequest.getUsername().toLowerCase());
 
         // Return matching User record from database.
-        Optional<User> userOpt = userDAO.findById(user.getId());
+        Optional<User> userOpt = userDAO.findById(id);
         if (userOpt.isEmpty()) return ResultStatus.NOT_FOUND; // Return not found error.
-        // TODO: Implement authorization check.
 
         // Update the User.
         User updatedUser = userOpt.get();
-        updatedUser.setUsername(user.getUsername());
-        updatedUser.setEmails(user.getEmails());
-        updatedUser.setFirstName(user.getFirstName());
-        updatedUser.setLastName(user.getLastName());
-        updatedUser.setPhoneNumber(user.getPhoneNumber());
+        updatedUser.setUsername(userRequest.getUsername());
+        updatedUser.setEmails((ArrayList<String>) userRequest.getEmails());
+        updatedUser.setFirstName(userRequest.getFirstName());
+        updatedUser.setLastName(userRequest.getLastName());
+        updatedUser.setPhoneNumber(userRequest.getPhoneNumber());
+        updatedUser.setPasswordHash(userRequest.getPassword());
 
         // Return the result code. Success == 1, Error == 0.
         int result = userDAO.update(updatedUser); // Returns 1 for row updated. Returns 0 for error/no rows updated.
