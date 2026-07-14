@@ -15,9 +15,11 @@ import java.io.IOException;
 
 public class AuthenticationServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationServlet.class);
+    private JwtUtil jwtUtil;
     private UserService userService;
 
-    public AuthenticationServlet(UserService userService) {
+    public AuthenticationServlet(JwtUtil jwtUtil, UserService userService) {
+        this.jwtUtil = jwtUtil;
         this.userService = userService;
     }
 
@@ -29,7 +31,7 @@ public class AuthenticationServlet extends HttpServlet {
             UserResponse userResponse = this.userService.authenticate(userCredentials.username, userCredentials.password);
 
             if (userResponse != null) {
-                String token = JwtUtil.generateToken(userCredentials.username);
+                String token = this.jwtUtil.generateToken(userCredentials.username);
 
                 String cookieStr = "access_token=" + token + "; SameSite=None; Secure; HttpOnly; Path=/; Max-Age=900";
                 response.setHeader("Set-Cookie", cookieStr);

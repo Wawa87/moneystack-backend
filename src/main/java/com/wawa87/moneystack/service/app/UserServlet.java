@@ -8,6 +8,7 @@ import com.wawa87.moneystack.service.auth.AuthorizationChecker;
 import com.wawa87.moneystack.service.system.exceptions.ApiException;
 import com.wawa87.moneystack.service.system.db.ResultStatus;
 import com.wawa87.moneystack.service.system.db.ServletUtility;
+import com.wawa87.moneystack.service.system.exceptions.ValidationException;
 import com.wawa87.moneystack.service.system.user.UserService;
 import com.wawa87.moneystack.service.system.user.model.RegistrationResult;
 import com.wawa87.moneystack.service.system.user.model.UserRequest;
@@ -25,22 +26,19 @@ import java.util.List;
 public class UserServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(UserServlet.class);
     UserService userService;
-    Gson gson;
 
     public UserServlet(UserService userService) {
         this.userService = userService;
-        this.gson = new GsonBuilder().serializeNulls().registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter()).create();
     }
 
     @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void doGet(HttpServletRequest request, HttpServletResponse response) {
         String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
-        Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
+        Long requesterId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
 
         // Handle invalid request.
         if (pathInfo.length != 2) {
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad request");
-            return;
+            ServletUtility.sendBadRequest(response);
         }
 
         // Handle request: /users/all
@@ -48,32 +46,30 @@ public class UserServlet extends HttpServlet {
             try {
                 List<UserResponse> usersResponse = userService.getUsers(String.valueOf(request.getAttribute("username")));
                 ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, usersResponse);
-            } catch (ApiException e) {
-                ServletUtility.sendResponse(response, e.getStatusCode(), e.getMessage());
+            } catch (ValidationException e) {
+                ServletUtility.sendValidationException(response, e);
             } catch (Exception e) {
-                logger.error(e.getMessage());
-                ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+                ServletUtility.sendInternalException(response);
             }
-            return;
         }
 
         // Handle request: /users/{id}
-        Long id = Long.valueOf(0);
-        try {
-            id = Long.valueOf(pathInfo[1]);
-        } catch (NumberFormatException e) {
-            logger.error("Error: " + e);
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad user id.");
-            return;
+        if (pathInfo.length == 2 && !pathInfo[1].equals("all")) {
+            try {
+                Long requestedId = Long.valueOf(pathInfo[1]);
+                UserResponse userResponse = userService.findUserById(requesterId, requestedId);
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, userResponse);
+            } catch (NumberFormatException e) {
+                logger.error("Error: " + e);
+                ServletUtility.sendBadRequest(response);
+            } catch (ValidationException e) {
+                ServletUtility.sendValidationException(response, e);
+            } catch (Exception e) {
+                ServletUtility.sendBadRequest(response);
+            }
         }
 
-        if (pathInfo.length == 2 && Long.valueOf(pathInfo[1]) > 0) {
-            UserResponse userResponse = userService.findUserById(id);
-            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, userResponse);
-            return;
-        }
-
-        ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad request.");
+        ServletUtility.sendBadRequest(response);
         return;
     }
 
@@ -90,7 +86,7 @@ public class UserServlet extends HttpServlet {
 
         // Create the User.
         try {
-            UserRequest userRequest = gson.fromJson(request.getReader(), UserRequest.class); // Read the payload into UserRequest object.
+            UserRequest userRequest = ServletUtility.gson.fromJson(request.getReader(), UserRequest.class); // Read the payload into UserRequest object.
             RegistrationResult registrationResult = userService.register(userRequest); // Register the new User.
 
             if (registrationResult.getResult()) {

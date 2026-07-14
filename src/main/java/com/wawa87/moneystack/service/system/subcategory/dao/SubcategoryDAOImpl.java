@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.ObjectMapper;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,7 +24,7 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
             .toFormatter();
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private final Connection connection;
+    private final DataSource dataSource;
 
     private static final String TABLE = "ms_subcategories";
     private static final String F_ID = "id";
@@ -31,8 +32,8 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
     private static final String F_NAME = "name";
     private static final String F_DESCRIPTION = "description";
 
-    public SubcategoryDAOImpl(Connection connection) {
-        this.connection = connection;
+    public SubcategoryDAOImpl(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -41,7 +42,8 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
             + F_CATEGORY_ID + ","
             + F_NAME + ","
             + F_DESCRIPTION + ") VALUES(?, ?, ?) RETURNING " + F_ID;
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, subcategory.getCategoryId());
             stmt.setString(2, subcategory.getName());
 
@@ -68,7 +70,8 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
     public Optional<Subcategory> findById(Long id) {
         String sql = "SELECT * FROM " + TABLE + " WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
@@ -87,7 +90,8 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
         List<Subcategory> subcategories = new ArrayList<>();
         String sql = "SELECT * FROM " + TABLE + " WHERE " + F_CATEGORY_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, categoryId);
             try (ResultSet resultSet = stmt.executeQuery()) {
                 while (resultSet.next()) {
@@ -106,7 +110,8 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
     public int update(Subcategory subcategory) {
         String sql = "UPDATE " + TABLE + " SET " + F_CATEGORY_ID + "=?, " + F_NAME + "=?, " + F_DESCRIPTION + "=? WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, subcategory.getCategoryId());
             stmt.setString(2, subcategory.getName());
 
@@ -129,7 +134,8 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
     public int deleteById(Long id) {
         String sql = "DELETE FROM " + TABLE + " WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
 
             return stmt.executeUpdate();

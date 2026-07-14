@@ -3,6 +3,7 @@ package com.wawa87.moneystack.service.system.user;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
+import com.wawa87.moneystack.service.auth.AuthorizationService;
 import com.wawa87.moneystack.service.auth.AuthorizationChecker;
 import com.wawa87.moneystack.service.auth.UsernameValidationResponse;
 import com.wawa87.moneystack.service.system.exceptions.ValidationException;
@@ -25,10 +26,12 @@ public class UserService {
 
     private UserDAO userDAO;
     private Argon2 argon2;
+    private AuthorizationService authorizationService;
 
-    public UserService(UserDAO userDAO, Argon2 argon2) {
+    public UserService(UserDAO userDAO, Argon2 argon2, AuthorizationService authorizationService) {
         this.userDAO = userDAO;
         this.argon2 = argon2;
+        this.authorizationService = authorizationService;
     }
 
     public RegistrationResult register(UserRequest userRequest) {
@@ -105,8 +108,11 @@ public class UserService {
         return false;
     }
 
-    public UserResponse findUserById(Long id) {
-        Optional<User> userOpt = userDAO.findById(id);
+    public UserResponse findUserById(Long requesterId, Long requestedId) throws ValidationException {
+        if (!authorizationService.authorizeForUser(requesterId, requestedId)) {
+            throw new ValidationException();
+        }
+        Optional<User> userOpt = userDAO.findById(requestedId);
         if (userOpt.isEmpty()) return null;
         return UserResponse.convertUserToResponse(userOpt.get());
     }
@@ -126,10 +132,10 @@ public class UserService {
         return UsernameValidationResponse.newValidationResponse(true, "Username is available: " + username.toLowerCase());
     }
 
-    public List<UserResponse> getUsers(String username) {
+    public List<UserResponse> getUsers(String username) throws ValidationException {
         // TODO: Implement proper authorization check.
         if (!AuthorizationChecker.authorizeAdminUsername(username)) {
-            throw new ValidationException("Unauthorized. Admin access only.");
+            throw new ValidationException();
         }
 
         List<User> users = userDAO.findAll();

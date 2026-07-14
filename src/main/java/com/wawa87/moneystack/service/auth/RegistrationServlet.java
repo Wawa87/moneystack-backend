@@ -2,6 +2,7 @@ package com.wawa87.moneystack.service.auth;
 
 import com.wawa87.moneystack.service.system.db.ServletUtility;
 import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.model.RegistrationResult;
 import com.wawa87.moneystack.service.system.user.model.UserRequest;
 import com.wawa87.moneystack.service.system.user.model.UserResponse;
 import jakarta.servlet.http.HttpServlet;
@@ -23,8 +24,8 @@ public class RegistrationServlet extends HttpServlet {
         // Handle request: /register
         try {
             UserRequest userRequest = ServletUtility.gson.fromJson(request.getReader(), UserRequest.class);
-            UserResponse userResponse = userService.saveNewUser(userRequest);
-            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_CREATED, userResponse);
+            RegistrationResult registrationResult = userService.register(userRequest);
+            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_CREATED, registrationResult.getUserResponse());
             return;
         } catch (Exception e) {
             logger.error("Error: ", e);

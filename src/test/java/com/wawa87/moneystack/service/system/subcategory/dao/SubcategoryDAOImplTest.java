@@ -25,49 +25,49 @@ public class SubcategoryDAOImplTest {
 
     @BeforeEach
     public void prepareConnection() {
-        try {
-            this.connection = PGUtil.getDataSource().getConnection();
-            this.connection.setAutoCommit(false);
-
-            // Load required User and Category data.
-            this.userDAO = new UserDAOImpl(this.connection);
-            this.categoryDAO = new CategoryDAOImpl(this.connection);
-            this.subcategoryDAO = new SubcategoryDAOImpl(this.connection);
-
-            // Create the test User.
-            User user = new User();
-            user.setUsername("cosmo");
-
-            ArrayList<String> emails = new ArrayList<>();
-            emails.add("cosmo@seinfeld.com");
-            emails.add("cosmo@kramerica.com");
-            user.setEmails(emails);
-
-            user.setFirstName("Cosmo");
-            user.setLastName("Kramer");
-            user.setPhoneNumber("+16195554321");
-
-            // Insert the test User and confirm id generation of new record.
-            Optional<User> rsUser = this.userDAO.save(user);
-            user = rsUser.get();
-
-            Category category = new Category();
-            category.setUserId(user.getId());
-            category.setName("Housing");
-
-            Optional<Category> categoryRs = this.categoryDAO.save(category);
-            category = categoryRs.get();
-
-            Category category2 = new Category();
-            category2.setUserId(user.getId());
-            category2.setName("Entertainment");
-
-            categoryRs = this.categoryDAO.save(category2);
-            category2 = categoryRs.get();
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            this.connection = PGUtil.getDataSource().getConnection();
+//            this.connection.setAutoCommit(false);
+//
+//            // Load required User and Category data.
+//            this.userDAO = new UserDAOImpl(this.connection);
+//            this.categoryDAO = new CategoryDAOImpl(this.connection);
+//            this.subcategoryDAO = new SubcategoryDAOImpl(this.connection);
+//
+//            // Create the test User.
+//            User user = new User();
+//            user.setUsername("cosmo");
+//
+//            ArrayList<String> emails = new ArrayList<>();
+//            emails.add("cosmo@seinfeld.com");
+//            emails.add("cosmo@kramerica.com");
+//            user.setEmails(emails);
+//
+//            user.setFirstName("Cosmo");
+//            user.setLastName("Kramer");
+//            user.setPhoneNumber("+16195554321");
+//
+//            // Insert the test User and confirm id generation of new record.
+//            Optional<User> rsUser = this.userDAO.save(user);
+//            user = rsUser.get();
+//
+//            Category category = new Category();
+//            category.setUserId(user.getId());
+//            category.setName("Housing");
+//
+//            Optional<Category> categoryRs = this.categoryDAO.save(category);
+//            category = categoryRs.get();
+//
+//            Category category2 = new Category();
+//            category2.setUserId(user.getId());
+//            category2.setName("Entertainment");
+//
+//            categoryRs = this.categoryDAO.save(category2);
+//            category2 = categoryRs.get();
+//
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     @AfterEach

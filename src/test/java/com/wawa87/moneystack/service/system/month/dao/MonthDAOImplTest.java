@@ -8,11 +8,13 @@ import com.wawa87.moneystack.service.system.month.model.Month;
 import com.wawa87.moneystack.service.system.user.dao.UserDAO;
 import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
 import com.wawa87.moneystack.service.system.user.model.User;
+import com.wawa87.moneystack.service.system.user.model.UserRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Year;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MonthDAOImplTest {
+    private DataSource dataSource;
     private Connection connection;
     private UserDAO userDAO;
     private BudgetDAO budgetDAO;
@@ -27,37 +30,34 @@ public class MonthDAOImplTest {
 
     @BeforeEach
     public void prepareConnection() {
-        try {
-            this.connection = PGUtil.getDataSource().getConnection();
-            this.connection.setAutoCommit(false);
-
-            this.userDAO = new UserDAOImpl(this.connection);
-            this.budgetDAO = new BudgetDAOImpl(this.connection);
-            this.monthDAO = new MonthDAOImpl(this.connection);
-
-            // Load the test data.
-            User user = new User();
-            user.setUsername("cosmo");
-
-            ArrayList<String> emails = new ArrayList<>();
-            emails.add("cosmo@seinfeld.com");
-            emails.add("cosmo@kramerica.com");
-            user.setEmails(emails);
-
-            user.setFirstName("Cosmo");
-            user.setLastName("Kramer");
-            user.setPhoneNumber("+16195554321");
-
-            user = this.userDAO.save(user).get();
-
-            Budget budget0 = new Budget();
-            budget0.setName("Big Spender");
-            budget0.setUserId(user.getId());
-
-            budget0 = this.budgetDAO.save(budget0).get();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            this.userDAO = new UserDAOImpl(this.dataSource);
+//            this.budgetDAO = new BudgetDAOImpl(this.dataSource);
+//            this.monthDAO = new MonthDAOImpl(this.dataSource);
+//
+//            // Load the test data.
+//            User user = new User();
+//            user.setUsername("cosmo");
+//
+//            ArrayList<String> emails = new ArrayList<>();
+//            emails.add("cosmo@seinfeld.com");
+//            emails.add("cosmo@kramerica.com");
+//            user.setEmails(emails);
+//
+//            user.setFirstName("Cosmo");
+//            user.setLastName("Kramer");
+//            user.setPhoneNumber("+16195554321");
+//
+//            user = this.userDAO.save(UserRequest.convertToUser(user)).get();
+//
+//            Budget budget0 = new Budget();
+//            budget0.setName("Big Spender");
+//            budget0.setUserId(user.getId());
+//
+//            budget0 = this.budgetDAO.save(budget0).get();
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     @AfterEach

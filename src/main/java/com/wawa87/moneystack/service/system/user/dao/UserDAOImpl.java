@@ -1,13 +1,12 @@
 package com.wawa87.moneystack.service.system.user.dao;
 
-import com.wawa87.moneystack.service.system.exceptions.DatabaseException;
-import com.wawa87.moneystack.service.system.exceptions.InternalServerException;
 import com.wawa87.moneystack.service.system.user.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -25,7 +24,7 @@ public class UserDAOImpl implements UserDAO {
             .toFormatter();
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private final Connection connection;
+    private final DataSource dataSource;
 
     private static final String TABLE = "ms_users";
     private static final String F_ID = "id";
@@ -38,8 +37,8 @@ public class UserDAOImpl implements UserDAO {
     private static final String F_CREATED_AT = "created_at";
     private static final String F_UPDATED_AT = "updated_at";
 
-    public UserDAOImpl(Connection connection) {
-        this.connection = connection;
+    public UserDAOImpl(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -53,7 +52,8 @@ public class UserDAOImpl implements UserDAO {
                 + F_PASSWORD_HASH
                 + ") VALUES (?, ?, ?, ?, ?, ?) RETURNING " + F_ID + ", " + F_CREATED_AT;
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, user.getUsername());
 
             String json = mapper.writeValueAsString(user.getEmails());
@@ -83,7 +83,8 @@ public class UserDAOImpl implements UserDAO {
     public Optional<User> findById(Long id) {
         String sql = "SELECT * FROM " + TABLE + " WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet rs  = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -101,7 +102,8 @@ public class UserDAOImpl implements UserDAO {
     public Optional<User> findByUsername(String username) {
         String sql = "SELECT * FROM " + TABLE + " WHERE " + F_USERNAME + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             try (ResultSet rs  = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -121,14 +123,14 @@ public class UserDAOImpl implements UserDAO {
 
         List<User> users = new ArrayList<>();
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 users.add(mapRow(rs));
             }
         } catch (SQLException e) {
-            logger.error("Failed to retrieve users.", e);
-            throw new DatabaseException("Failed to retrive users.", e);
+            logger.error(e.getMessage(), e);
         }
         return users;
     }
@@ -144,7 +146,8 @@ public class UserDAOImpl implements UserDAO {
             + F_UPDATED_AT + "=?,"
             + F_PASSWORD_HASH + "=? WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, user.getUsername());
 
             String json = mapper.writeValueAsString(user.getEmails());
@@ -174,7 +177,8 @@ public class UserDAOImpl implements UserDAO {
     public int deleteById(Long id) {
         String sql = "DELETE FROM " + TABLE + " WHERE " + F_ID + "= ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
             return stmt.executeUpdate();
         } catch (SQLException e) {
@@ -187,7 +191,8 @@ public class UserDAOImpl implements UserDAO {
     public int delete(User user) {
         String sql = "DELETE FROM " + TABLE + " WHERE " + F_ID + "= ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, user.getId());
             return stmt.executeUpdate();
         } catch (SQLException e) {

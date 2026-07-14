@@ -3,6 +3,7 @@ package com.wawa87.moneystack.service.system.db;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.wawa87.moneystack.service.app.util.LocalDateTimeAdapter;
+import com.wawa87.moneystack.service.system.exceptions.ApiException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
@@ -37,5 +38,17 @@ public class ServletUtility {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    public static void sendBadRequest(HttpServletResponse response) {
+        sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad request");
+    }
+
+    public static void sendValidationException(HttpServletResponse response, ApiException e) {
+        sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+    }
+
+    public static void sendInternalException(HttpServletResponse response) {
+        sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
     }
 }

@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.ObjectMapper;
 
+import javax.sql.DataSource;
+import javax.xml.crypto.Data;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,7 +22,7 @@ public class MonthDAOImpl implements MonthDAO {
     private static final Logger logger = LoggerFactory.getLogger(MonthDAOImpl.class);
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private final Connection connection;
+    private final DataSource dataSource;
 
     private static final String TABLE = "ms_months";
     private static final String F_ID = "id";
@@ -28,8 +30,8 @@ public class MonthDAOImpl implements MonthDAO {
     private static final String F_YEAR = "year";
     private static final String F_MONTH = "month";
 
-    public MonthDAOImpl(Connection connection) {
-        this.connection = connection;
+    public MonthDAOImpl(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -40,7 +42,8 @@ public class MonthDAOImpl implements MonthDAO {
             + F_MONTH
             + ") VALUES(?, ?, ?) RETURNING id";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, month.getBudgetId());
             stmt.setInt(2, month.getYear().getValue());
             stmt.setInt(3, month.getMonth().getValue());
@@ -62,7 +65,8 @@ public class MonthDAOImpl implements MonthDAO {
     public Optional<Month> findById(Long id) {
         String sql = "SELECT * FROM " + TABLE + " WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
@@ -81,7 +85,8 @@ public class MonthDAOImpl implements MonthDAO {
         List<Month> months = new ArrayList<>();
         String sql = "SELECT * FROM " + TABLE + " WHERE " + F_BUDGET_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, budgetId);
             try (ResultSet resultSet = stmt.executeQuery()) {
                 while (resultSet.next()) {
@@ -104,7 +109,8 @@ public class MonthDAOImpl implements MonthDAO {
                 + F_MONTH + "=?"
                 + " WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, month.getBudgetId());
             stmt.setInt(2, month.getYear().getValue());
             stmt.setInt(3, month.getMonth().getValue());
@@ -121,7 +127,8 @@ public class MonthDAOImpl implements MonthDAO {
     public int deleteById(Long id) {
         String sql = "DELETE FROM " + TABLE + " WHERE id=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
 
             return stmt.executeUpdate();
@@ -135,7 +142,8 @@ public class MonthDAOImpl implements MonthDAO {
     public int delete(Month month) {
         String sql = "DELETE FROM " + TABLE + " WHERE id=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, month.getId());
 
             return stmt.executeUpdate();

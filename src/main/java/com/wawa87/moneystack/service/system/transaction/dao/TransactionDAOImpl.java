@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.ObjectMapper;
 
+import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -26,7 +27,7 @@ public class TransactionDAOImpl implements TransactionDAO {
             .toFormatter();
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private final Connection connection;
+    private final DataSource dataSource;
 
     private static final String TABLE = "ms_transactions";
     private static final String F_ID = "id";
@@ -37,8 +38,8 @@ public class TransactionDAOImpl implements TransactionDAO {
     private static final String F_TIMESTAMP = "timestamp";
     private static final String F_AMOUNT = "amount";
 
-    public TransactionDAOImpl(Connection connection) {
-        this.connection = connection;
+    public TransactionDAOImpl(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -51,7 +52,8 @@ public class TransactionDAOImpl implements TransactionDAO {
                 + F_TIMESTAMP + ","
                 + F_AMOUNT + ") VALUES(?, ?, ?, ?, ?, ?) RETURNING " + F_ID + ", " + F_TIMESTAMP;
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, transaction.getMonthId());
 
             if (transaction.getCategoryId() == null) {
@@ -91,7 +93,8 @@ public class TransactionDAOImpl implements TransactionDAO {
     public Optional<Transaction> findById(Long id) {
         String sql = "SELECT * FROM " + TABLE + " WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
@@ -110,7 +113,8 @@ public class TransactionDAOImpl implements TransactionDAO {
         List<Transaction> transactions = new ArrayList<>();
         String sql = "SELECT * FROM " + TABLE + " WHERE " + F_MONTH_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, monthId);
             try (ResultSet resultSet = stmt.executeQuery()) {
                 while (resultSet.next()) {
@@ -136,7 +140,8 @@ public class TransactionDAOImpl implements TransactionDAO {
                 + F_AMOUNT + "=?"
                 + " WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, transaction.getMonthId());
 
             if (transaction.getCategoryId() == null) {
@@ -170,7 +175,8 @@ public class TransactionDAOImpl implements TransactionDAO {
     public int deleteById(Long id) {
         String sql = "DELETE FROM " + TABLE + " WHERE id=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
 
             return stmt.executeUpdate();
@@ -184,7 +190,8 @@ public class TransactionDAOImpl implements TransactionDAO {
     public int delete(Transaction transaction) {
         String sql = "DELETE FROM " + TABLE + " WHERE id=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, transaction.getId());
 
             return stmt.executeUpdate();

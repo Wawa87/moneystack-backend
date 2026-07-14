@@ -1,6 +1,9 @@
 package com.wawa87.moneystack.service.system.transaction;
 
 import com.wawa87.moneystack.App;
+import com.wawa87.moneystack.service.system.category.CategoryService;
+import com.wawa87.moneystack.service.system.category.model.Category;
+import com.wawa87.moneystack.service.system.subcategory.SubcategoryService;
 import com.wawa87.moneystack.service.system.transaction.dao.TransactionDAO;
 import com.wawa87.moneystack.service.system.transaction.dao.TransactionDTO;
 import com.wawa87.moneystack.service.system.transaction.model.Transaction;
@@ -14,9 +17,13 @@ public class TransactionService {
     private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
 
     private TransactionDAO transactionDAO;
+    private CategoryService categoryService;
+    private SubcategoryService subcategoryService;
 
-    public TransactionService(TransactionDAO transactionDAO) {
+    public TransactionService(TransactionDAO transactionDAO, CategoryService categoryService, SubcategoryService subcategoryService) {
         this.transactionDAO = transactionDAO;
+        this.categoryService = categoryService;
+        this.subcategoryService = subcategoryService;
     }
 
     public List<TransactionDTO> getTransactionDTOs(List<Transaction> transactions) {
@@ -28,8 +35,8 @@ public class TransactionService {
             transactionDTO.setAmount(it.getAmount());
             transactionDTO.setDescription(it.getDescription());
             transactionDTO.setTimestamp(it.getTimestamp());
-            transactionDTO.setCategory(App.categoryService.findCategoryById(it.getCategoryId()).getName());
-            transactionDTO.setSubcategory(App.subcategoryService.getSubcategoryDTOById(it.getSubcategoryId()).getName());
+            transactionDTO.setCategory(this.categoryService.findCategoryById(it.getCategoryId()).getName());
+            transactionDTO.setSubcategory(this.subcategoryService.getSubcategoryDTOById(it.getSubcategoryId()).getName());
             transactionDTOs.add(transactionDTO);
         });
         return transactionDTOs;

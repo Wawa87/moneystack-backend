@@ -23,61 +23,42 @@ import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
 import com.wawa87.moneystack.service.system.db.PGUtil;
 import de.mkammerer.argon2.Argon2;
 import jakarta.servlet.DispatcherType;
-import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.EnumSet;
 import java.util.Properties;
 
 public class App {
-    public static DataSource dataSource = PGUtil.getDataSource();
-    public static Argon2 argon2 = Argon2Util.getArgon2();
-    public static UserService userService;
-    public static BudgetService budgetService;
-    public static CategoryService categoryService;
-    public static SubcategoryService subcategoryService;
-    public static MonthService monthService;
-    public static TransactionService transactionService;
-    public static Loader loader;
-    public static Properties properties;
-
-    static {
-        try {
-            Connection connection = dataSource.getConnection();
-
-            UserDAO userDAO = new UserDAOImpl(connection);
-            userService = new UserService(userDAO, argon2);
-
-            BudgetDAO budgetDAO = new BudgetDAOImpl(connection);
-            budgetService = new BudgetService(budgetDAO);
-
-            CategoryDAO categoryDAO = new CategoryDAOImpl(connection);
-            categoryService = new CategoryService(categoryDAO);
-
-            SubcategoryDAO subcategoryDAO = new SubcategoryDAOImpl(connection);
-            subcategoryService = new SubcategoryService(subcategoryDAO);
-
-            MonthDAO monthDAO = new MonthDAOImpl(connection);
-            monthService = new MonthService(monthDAO);
-
-            TransactionDAO transactionDAO = new TransactionDAOImpl(connection);
-            transactionService = new TransactionService(transactionDAO);
-
-            loader = new Loader();
-            properties = loader.loadPropertiesFile("application.properties");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public static void main(String[] args) throws Exception {
+        // Initizalize
+        DataSource dataSource = PGUtil.getDataSource();
+        Argon2 argon2 = Argon2Util.getArgon2();
+
+        Loader loader = new Loader();
+        Properties properties = loader.loadPropertiesFile("application.properties");
+        JwtUtil jwtUtil = new JwtUtil(properties.getProperty("JWT_SECRET"), properties.getProperty("JWT_SECRET"));
+
+        UserDAO userDAO = new UserDAOImpl(dataSource);
+        BudgetDAO budgetDAO = new BudgetDAOImpl(dataSource);
+        CategoryDAO categoryDAO = new CategoryDAOImpl(dataSource);
+        SubcategoryDAO subcategoryDAO = new SubcategoryDAOImpl(dataSource);
+        MonthDAO monthDAO = new MonthDAOImpl(dataSource);
+        TransactionDAO transactionDAO = new TransactionDAOImpl(dataSource);
+
+        AuthorizationServiceServiceImpl authorizationServiceImpl = new AuthorizationServiceServiceImpl(userDAO);
+        UserService userService = new UserService(userDAO, argon2, authorizationServiceImpl);
+        BudgetService budgetService = new BudgetService(budgetDAO);
+        CategoryService categoryService = new CategoryService(categoryDAO);
+        SubcategoryService subcategoryService = new SubcategoryService(subcategoryDAO);
+        MonthService monthService = new MonthService(monthDAO);
+        TransactionService transactionService = new TransactionService(transactionDAO, categoryService, subcategoryService);
+
+        // Start server.
         Server server = new Server(8080);
 //        Server server = new Server();
 
@@ -115,14 +96,14 @@ public class App {
 //                EnumSet.of(DispatcherType.REQUEST)
 //        );
 
-        FilterHolder authenticationFilter = new FilterHolder(new AuthenticationFilter(userService));
+        FilterHolder authenticationFilter = new FilterHolder(new AuthenticationFilter(jwtUtil, userService));
         context.addFilter(
                 authenticationFilter,
                 "/*",
                 EnumSet.of(DispatcherType.REQUEST)
         );
 
-        ServletHolder authenticationServlet = new ServletHolder(new AuthenticationServlet(userService));
+        ServletHolder authenticationServlet = new ServletHolder(new AuthenticationServlet(jwtUtil, userService));
         context.addServlet(authenticationServlet, "/login");
 
         ServletHolder registrationServlet = new ServletHolder(new RegistrationServlet(userService));

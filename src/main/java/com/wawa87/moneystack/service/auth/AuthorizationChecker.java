@@ -7,7 +7,7 @@ public class AuthorizationChecker {
         return (category.getUserId().equals(userId));
     }
 
-    public static boolean authorizeAdminUser(Long adminId) {
+    public static boolean authorizeAdminUserId(Long adminId) {
         // TODO: Implement proper admin check.
         return adminId.equals("dev");
     }

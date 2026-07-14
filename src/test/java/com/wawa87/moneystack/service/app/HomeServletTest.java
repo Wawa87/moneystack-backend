@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import com.wawa87.moneystack.service.app.util.DashboardSet;
 import com.wawa87.moneystack.service.app.util.LocalDateTimeAdapter;
 import com.wawa87.moneystack.service.auth.Argon2Util;
+import com.wawa87.moneystack.service.auth.AuthorizationService;
+import com.wawa87.moneystack.service.auth.AuthorizationServiceServiceImpl;
 import com.wawa87.moneystack.service.system.budget.BudgetService;
 import com.wawa87.moneystack.service.system.budget.dao.BudgetDAO;
 import com.wawa87.moneystack.service.system.budget.dao.BudgetDAOImpl;
@@ -30,10 +32,14 @@ import com.wawa87.moneystack.service.system.user.dao.UserDAO;
 import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
 import com.wawa87.moneystack.service.system.db.PGUtil;
 import com.wawa87.moneystack.service.system.user.model.User;
+import com.wawa87.moneystack.service.system.user.model.UserRequest;
 import de.mkammerer.argon2.Argon2;
+import org.checkerframework.checker.units.qual.C;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -47,6 +53,39 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HomeServletTest {
+    Argon2 argon2;
+    DataSource dataSource;
+    UserDAO userDAO;
+    CategoryDAO categoryDAO;
+    SubcategoryDAO subcategoryDAO;
+    BudgetDAO budgetDAO;
+    MonthDAO monthDAO;
+    TransactionDAO transactionDAO;
+    AuthorizationService authorizationService;
+    UserService userService;
+    CategoryService categoryService;
+    SubcategoryService subcategoryService;
+    BudgetService budgetService;
+    MonthService monthService;
+    TransactionService transactionService;
+
+    @BeforeEach
+    public void initializeTesting() {
+        this.argon2 = Argon2Util.getArgon2();
+        this.dataSource = PGUtil.getDataSource();
+        this.userDAO = new UserDAOImpl(this.dataSource);
+        this.categoryDAO = new CategoryDAOImpl(this.dataSource);
+        this.budgetDAO = new BudgetDAOImpl(this.dataSource);
+        this.monthDAO = new MonthDAOImpl(this.dataSource);
+
+        this.authorizationService = new AuthorizationServiceServiceImpl(this.userDAO);
+        this.userService = new UserService(this.userDAO, this.argon2, this.authorizationService);
+        this.categoryService = new CategoryService(this.categoryDAO);
+        this.subcategoryService = new SubcategoryService(this.subcategoryDAO);
+        this.budgetService = new BudgetService(this.budgetDAO);
+        this.monthService = new MonthService(this.monthDAO);
+    }
+
     @Test
     public void testHomeNoAuth() throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
@@ -63,18 +102,14 @@ public class HomeServletTest {
 
     @Test
     public void testHomeNewUser() {
-        try (Connection connection = PGUtil.getDataSource().getConnection()) {
-            UserDAOImpl userDAO = new UserDAOImpl(connection);
-            Argon2 argon2 = Argon2Util.getArgon2();
-            UserService userService = new UserService(userDAO, argon2);
-
+        try {
             // Register the test user.
-            User user = new User();
+            UserRequest user = new UserRequest();
             user.setUsername("cosmo");
             user.setEmails(new ArrayList<>(List.of("kman@seinfeld.com")));
             user.setFirstName("Cosmo");
             user.setLastName("Kramer");
-            user.setPasswordHash("yoyoma");
+            user.setPassword("yoyoma");
             user.setPhoneNumber("+17602220101");
 
             userService.register(user);
@@ -125,7 +160,7 @@ public class HomeServletTest {
             Assertions.assertNull(appUser.getActiveBudget());
             Assertions.assertNull(appUser.getTransactions());
 
-            userService.deleteUser(user);
+            userService.deleteUser(UserRequest.convertToUser(user));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -133,16 +168,7 @@ public class HomeServletTest {
 
     @Test
     public void testHomeUserWithData() {
-        try (Connection connection = PGUtil.getDataSource().getConnection()) {
-            UserDAO userDAO = new UserDAOImpl(connection);
-            CategoryDAO categoryDAO = new CategoryDAOImpl(connection);
-            SubcategoryDAO subcategoryDAO = new SubcategoryDAOImpl(connection);
-            BudgetDAO budgetDAO = new BudgetDAOImpl(connection);
-            MonthDAO monthDAO = new MonthDAOImpl(connection);
-            TransactionDAO transactionDAO = new TransactionDAOImpl(connection);
-
-            Argon2 argon2 = Argon2Util.getArgon2();
-            UserService userService = new UserService(userDAO, argon2);
+        try {
             CategoryService categoryService = new CategoryService(categoryDAO);
             SubcategoryService subcategoryService = new SubcategoryService(subcategoryDAO);
             BudgetService budgetService = new BudgetService(budgetDAO);
@@ -150,15 +176,17 @@ public class HomeServletTest {
             TransactionService transactionService = new TransactionService(transactionDAO);
 
             // Register the test user.
-            User user = new User();
-            user.setUsername("cosmo");
-            user.setEmails(new ArrayList<>(List.of("kman@seinfeld.com")));
-            user.setFirstName("Cosmo");
-            user.setLastName("Kramer");
-            user.setPasswordHash("yoyoma");
-            user.setPhoneNumber("+17602220101");
+            UserRequest userRequest = new UserRequest();
+            userRequest.setUsername("cosmo");
+            userRequest.setEmails(new ArrayList<>(List.of("kman@seinfeld.com")));
+            userRequest.setFirstName("Cosmo");
+            userRequest.setLastName("Kramer");
+            userRequest.setPassword("yoyoma");
+            userRequest.setPhoneNumber("+17602220101");
 
-            userService.register(user);
+            userService.register(userRequest);
+
+            User user = UserRequest.convertToUser(userRequest);
 
             Category category = new Category();
             category.setName("Housing");

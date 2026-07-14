@@ -1,13 +1,17 @@
 package com.wawa87.moneystack.service.auth;
 
 import com.wawa87.moneystack.service.system.user.UserService;
+import com.wawa87.moneystack.service.system.user.dao.UserDAO;
 import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
 import com.wawa87.moneystack.service.system.db.PGUtil;
 import com.wawa87.moneystack.service.system.user.model.User;
+import com.wawa87.moneystack.service.system.user.model.UserRequest;
 import de.mkammerer.argon2.Argon2;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.sql.DataSource;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -19,6 +23,19 @@ import java.util.List;
 import java.util.Optional;
 
 public class AuthenticationTest {
+    DataSource dataSource;
+    Argon2 argon2;
+    AuthorizationService authorizationService;
+    UserDAO userDAO;
+
+    @BeforeEach
+    public void initializeTest() {
+        this.argon2 = Argon2Util.getArgon2();
+        this.dataSource = PGUtil.getDataSource();
+        this.userDAO = new UserDAOImpl(this.dataSource);
+        this.authorizationService = new AuthorizationServiceServiceImpl(this.userDAO);
+    }
+
     @Test
     public void testRegistration() throws Exception {
         String json = "{" +
@@ -44,18 +61,14 @@ public class AuthenticationTest {
         Assertions.assertEquals(response.statusCode(), 201);
         Assertions.assertEquals(response.body(), "Successfully registered user: testUser");
 
-        try (Connection connection = PGUtil.getDataSource().getConnection()) {
-            connection.setAutoCommit(false);
-            UserDAOImpl userDAO = new UserDAOImpl(connection);
+        try {
+            UserDAOImpl userDAO = new UserDAOImpl(this.dataSource);
 
             Optional<User> userRes = userDAO.findByUsername("testUser");
             if (userRes.isPresent()) {
                 User user = userRes.get();
                 userDAO.delete(user);
             }
-
-            connection.commit();
-            connection.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -63,20 +76,18 @@ public class AuthenticationTest {
 
     @Test
     public void testLogin() throws SQLException {
-        try (Connection connection = PGUtil.getDataSource().getConnection()) {
-            UserDAOImpl userDAO = new UserDAOImpl(connection);
-            Argon2 argon2 = Argon2Util.getArgon2();
-            UserService userService = new UserService(userDAO, argon2);
+        try {
+            UserService userService = new UserService(this.userDAO, this.argon2, authorizationService);
 
-            User user = new User();
-            user.setUsername("testUser");
-            user.setEmails(new ArrayList<>(List.of("testUser@email.com")));
-            user.setFirstName("Test");
-            user.setLastName("User");
-            user.setPasswordHash("testpass");
-            user.setPhoneNumber("17602221111");
+            UserRequest userRequest = new UserRequest();
+            userRequest.setUsername("testUser");
+            userRequest.setEmails(new ArrayList<>(List.of("testUser@email.com")));
+            userRequest.setFirstName("Test");
+            userRequest.setLastName("User");
+            userRequest.setPassword("testpass");
+            userRequest.setPhoneNumber("17602221111");
 
-            userService.register(user);
+            userService.register(userRequest);
 
             String json = "{" +
                     "\"username\": \"testUser\"," +
@@ -97,7 +108,7 @@ public class AuthenticationTest {
             String subject = JwtUtil.validateAndGetSubject(response.body());
             Assertions.assertEquals("testUser", subject);
 
-            int result = userService.deleteUser(user);
+            int result = userService.deleteUser(UserRequest.convertToUser(userRequest));
             System.out.println(result);
         } catch (Exception e) {
             e.printStackTrace();

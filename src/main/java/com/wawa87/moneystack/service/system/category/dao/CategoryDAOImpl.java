@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.ObjectMapper;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -21,7 +22,7 @@ public class CategoryDAOImpl implements CategoryDAO {
             .toFormatter();
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private final Connection connection;
+    private final DataSource dataSource;
 
     private static final String TABLE = "ms_categories";
     private static final String F_ID = "id";
@@ -29,8 +30,8 @@ public class CategoryDAOImpl implements CategoryDAO {
     private static final String F_NAME = "name";
     private static final String F_DESCRIPTION = "description";
 
-    public CategoryDAOImpl(Connection connection) {
-        this.connection = connection;
+    public CategoryDAOImpl(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -39,7 +40,8 @@ public class CategoryDAOImpl implements CategoryDAO {
         + F_USER_ID + ", "
         + F_NAME + ", "
         + F_DESCRIPTION + ") VALUES(?, ?, ?) RETURNING " + F_ID;
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, category.getUserId());
             stmt.setString(2, category.getName());
 
@@ -66,7 +68,8 @@ public class CategoryDAOImpl implements CategoryDAO {
     public Optional<Category> findById(Long id) {
         String sql = "SELECT * FROM " + TABLE + " WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
@@ -85,7 +88,8 @@ public class CategoryDAOImpl implements CategoryDAO {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT * FROM " + TABLE + " WHERE LOWER(" + F_NAME + ") LIKE LOWER(?)";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, "%" + name + "%");
             try (ResultSet resultSet = stmt.executeQuery()) {
                 while (resultSet.next()) {
@@ -105,7 +109,8 @@ public class CategoryDAOImpl implements CategoryDAO {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT * FROM " + TABLE + " WHERE " + F_USER_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, user_id);
             try (ResultSet resultSet = stmt.executeQuery()) {
                 while (resultSet.next()) {
@@ -125,7 +130,8 @@ public class CategoryDAOImpl implements CategoryDAO {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT * FROM " + TABLE + " WHERE " + F_USER_ID + "=? AND LOWER(" + F_NAME + ") LIKE LOWER(?)";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, userId);
             stmt.setString(2, "%" + name + "%");
             try (ResultSet resultSet = stmt.executeQuery()) {
@@ -146,7 +152,8 @@ public class CategoryDAOImpl implements CategoryDAO {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT " + TABLE + ".* FROM " + TABLE + ", ms_users WHERE ms_users.username = ? AND " + TABLE + ".user_id = ms_users.id";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             try (ResultSet resultSet = stmt.executeQuery()) {
                 while (resultSet.next()) {
@@ -165,7 +172,8 @@ public class CategoryDAOImpl implements CategoryDAO {
     public int update(Category category) {
         String sql = "UPDATE " + TABLE + " SET " + F_USER_ID + "=?, " + F_NAME + "=?, " + F_DESCRIPTION + "=? WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, category.getUserId());
             stmt.setString(2, category.getName());
 
@@ -188,7 +196,8 @@ public class CategoryDAOImpl implements CategoryDAO {
     public int deleteById(Long id) {
         String sql = "DELETE FROM " + TABLE + " WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
 
             return stmt.executeUpdate();

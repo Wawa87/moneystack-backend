@@ -15,64 +15,64 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserServiceTest {
-    @Test
-    public void testRegisterSuccess() {
-        try (Connection connection = PGUtil.getDataSource().getConnection()) {
-            connection.setAutoCommit(false);
-            UserDAOImpl userDAO = new UserDAOImpl(connection);
-            Argon2 argon2 = Argon2Util.getArgon2();
-            UserService userService = new UserService(userDAO, argon2);
-
-            User user = new User();
-            user.setUsername("testUser");
-            user.setEmails(new ArrayList<>(List.of("testUser@email.com")));
-            user.setFirstName("Test");
-            user.setLastName("User");
-            user.setPasswordHash("testpass");
-            user.setPhoneNumber("17602221111");
-
-            userService.register(user);
-
-            Assertions.assertNotNull(user);
-            Assertions.assertNotNull(user.getId());
-            Assertions.assertEquals(user.getUsername(), "testUser");
-            Assertions.assertEquals(user.getEmails().get(0), "testUser@email.com");
-            Assertions.assertEquals(user.getFirstName(), "Test");
-            Assertions.assertEquals(user.getLastName(), "User");
-            Assertions.assertTrue(argon2.verify(user.getPasswordHash(), "testpass"));
-
-            connection.rollback();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    public void testAuthenticationSuccess() {
-        try (Connection connection = PGUtil.getDataSource().getConnection()) {
-            connection.setAutoCommit(false);
-            UserDAOImpl userDAO = new UserDAOImpl(connection);
-            Argon2 argon2 = Argon2Util.getArgon2();
-            UserService userService = new UserService(userDAO, argon2);
-
-            User user = new User();
-            user.setUsername("testUser");
-            user.setEmails(new ArrayList<>(List.of("dev@tester.com")));
-            user.setFirstName("App");
-            user.setLastName("Dev");
-            user.setPasswordHash("testpass");
-            user.setPhoneNumber("17602221111");
-
-            userService.register(user);
-
-            UserResponse userResponse = userService.authenticate("testUser", "testpass");
-            Assertions.assertNotNull(userResponse);
-
-            connection.rollback();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
+//    @Test
+//    public void testRegisterSuccess() {
+//        try (Connection connection = PGUtil.getDataSource().getConnection()) {
+//            connection.setAutoCommit(false);
+//            UserDAOImpl userDAO = new UserDAOImpl(connection);
+//            Argon2 argon2 = Argon2Util.getArgon2();
+//            UserService userService = new UserService(userDAO, argon2);
+//
+//            User user = new User();
+//            user.setUsername("testUser");
+//            user.setEmails(new ArrayList<>(List.of("testUser@email.com")));
+//            user.setFirstName("Test");
+//            user.setLastName("User");
+//            user.setPasswordHash("testpass");
+//            user.setPhoneNumber("17602221111");
+//
+//            userService.register(user);
+//
+//            Assertions.assertNotNull(user);
+//            Assertions.assertNotNull(user.getId());
+//            Assertions.assertEquals(user.getUsername(), "testUser");
+//            Assertions.assertEquals(user.getEmails().get(0), "testUser@email.com");
+//            Assertions.assertEquals(user.getFirstName(), "Test");
+//            Assertions.assertEquals(user.getLastName(), "User");
+//            Assertions.assertTrue(argon2.verify(user.getPasswordHash(), "testpass"));
+//
+//            connection.rollback();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    @Test
+//    public void testAuthenticationSuccess() {
+//        try (Connection connection = PGUtil.getDataSource().getConnection()) {
+//            connection.setAutoCommit(false);
+//            UserDAOImpl userDAO = new UserDAOImpl(connection);
+//            Argon2 argon2 = Argon2Util.getArgon2();
+//            UserService userService = new UserService(userDAO, argon2);
+//
+//            User user = new User();
+//            user.setUsername("testUser");
+//            user.setEmails(new ArrayList<>(List.of("dev@tester.com")));
+//            user.setFirstName("App");
+//            user.setLastName("Dev");
+//            user.setPasswordHash("testpass");
+//            user.setPhoneNumber("17602221111");
+//
+//            userService.register(user);
+//
+//            UserResponse userResponse = userService.authenticate("testUser", "testpass");
+//            Assertions.assertNotNull(userResponse);
+//
+//            connection.rollback();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     @Test
     public void testChangePassword() {

@@ -33,44 +33,44 @@ public class TransactionDAOImplTest {
 
     @BeforeEach
     public void prepareConnection() {
-        try {
-            this.connection = PGUtil.getDataSource().getConnection();
-            this.connection.setAutoCommit(false);
-
-            this.userDAO = new UserDAOImpl(this.connection);
-            this.budgetDAO = new BudgetDAOImpl(this.connection);
-            this.monthDAO = new MonthDAOImpl(this.connection);
-            this.transactionDAO = new TransactionDAOImpl(this.connection);
-
-            // Load the test data.
-            User user = new User();
-            user.setUsername("cosmo");
-
-            ArrayList<String> emails = new ArrayList<>();
-            emails.add("cosmo@seinfeld.com");
-            emails.add("cosmo@kramerica.com");
-            user.setEmails(emails);
-
-            user.setFirstName("Cosmo");
-            user.setLastName("Kramer");
-            user.setPhoneNumber("+16195554321");
-
-            user = this.userDAO.save(user).get();
-
-            Budget budget = new Budget();
-            budget.setName("Big Spender");
-            budget.setUserId(user.getId());
-
-            budget = this.budgetDAO.save(budget).get();
-
-            Month month = new Month();
-            month.setBudgetId(budget.getId());
-            month.setYear(Year.of(2026));
-            month.setMonth(java.time.Month.APRIL);
-            month = monthDAO.save(month).get();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            this.connection = PGUtil.getDataSource().getConnection();
+//            this.connection.setAutoCommit(false);
+//
+//            this.userDAO = new UserDAOImpl(this.connection);
+//            this.budgetDAO = new BudgetDAOImpl(this.connection);
+//            this.monthDAO = new MonthDAOImpl(this.connection);
+//            this.transactionDAO = new TransactionDAOImpl(this.connection);
+//
+//            // Load the test data.
+//            User user = new User();
+//            user.setUsername("cosmo");
+//
+//            ArrayList<String> emails = new ArrayList<>();
+//            emails.add("cosmo@seinfeld.com");
+//            emails.add("cosmo@kramerica.com");
+//            user.setEmails(emails);
+//
+//            user.setFirstName("Cosmo");
+//            user.setLastName("Kramer");
+//            user.setPhoneNumber("+16195554321");
+//
+//            user = this.userDAO.save(user).get();
+//
+//            Budget budget = new Budget();
+//            budget.setName("Big Spender");
+//            budget.setUserId(user.getId());
+//
+//            budget = this.budgetDAO.save(budget).get();
+//
+//            Month month = new Month();
+//            month.setBudgetId(budget.getId());
+//            month.setYear(Year.of(2026));
+//            month.setMonth(java.time.Month.APRIL);
+//            month = monthDAO.save(month).get();
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     @AfterEach

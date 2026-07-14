@@ -10,30 +10,37 @@ import com.wawa87.moneystack.App;
 import java.util.Date;
 
 public class JwtUtil {
-    private static final String SECRET = App.properties.getProperty("JWT_SECRET");
-    private static final String ISSUER = App.properties.getProperty("JWT_ISSUER");
-    private static final long EXPIRATION_TIME = 3600_000; // 1 hour.
+    private final String SECRET;
+    private final String ISSUER;
+    private final long EXPIRATION_TIME = 3600_000; // 1 hour.
 
-    private static final Algorithm ALGORITHM = Algorithm.HMAC256(SECRET);
-    private static final JWTVerifier verifier = JWT.require(ALGORITHM)
-            .withIssuer(ISSUER)
-            .build();
+    private final Algorithm ALGORITHM;
+    private final JWTVerifier verifier;
 
-    public static String generateToken(String username) {
+    public JwtUtil(String secret, String issuer) {
+        this.SECRET = secret;
+        this.ISSUER = issuer;
+        this.ALGORITHM = Algorithm.HMAC256(SECRET);
+        this.verifier = JWT.require(ALGORITHM)
+                .withIssuer(ISSUER)
+                .build();
+    }
+
+    public String generateToken(String username) {
         Date now = new Date();
-        Date exp = new Date(now.getTime() + EXPIRATION_TIME);
+        Date exp = new Date(now.getTime() + this.EXPIRATION_TIME);
 
         return JWT.create()
-                .withIssuer(ISSUER)
+                .withIssuer(this.ISSUER)
                 .withSubject(username)
                 .withIssuedAt(now)
                 .withExpiresAt(exp)
-                .sign(ALGORITHM);
+                .sign(this.ALGORITHM);
     }
 
-    public static String validateAndGetSubject(String token) {
+    public String validateAndGetSubject(String token) {
         try {
-            DecodedJWT jwt = verifier.verify(token);
+            DecodedJWT jwt = this.verifier.verify(token);
             return jwt.getSubject();
         } catch (JWTVerificationException exception) {
             return null;

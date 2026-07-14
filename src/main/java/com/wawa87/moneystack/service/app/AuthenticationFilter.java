@@ -16,9 +16,11 @@ import java.io.IOException;
 public class AuthenticationFilter extends HttpFilter {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
 
+    private JwtUtil jwtUtil;
     private UserService userService;
 
-    public AuthenticationFilter(UserService userService) {
+    public AuthenticationFilter(JwtUtil jwtUtil, UserService userService) {
+        this.jwtUtil = jwtUtil;
         this.userService = userService;
     }
 
@@ -34,7 +36,7 @@ public class AuthenticationFilter extends HttpFilter {
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals("access_token")) {
-                    String subject = JwtUtil.validateAndGetSubject(cookie.getValue());
+                    String subject = this.jwtUtil.validateAndGetSubject(cookie.getValue());
                     UserResponse userResponse = this.userService.findUserByUsername(subject);
 
                     // Valid subject is in the token. Add User attributes.

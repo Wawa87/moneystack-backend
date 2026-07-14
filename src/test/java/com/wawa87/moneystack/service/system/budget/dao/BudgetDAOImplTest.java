@@ -10,12 +10,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BudgetDAOImplTest {
+    private DataSource dataSource;
     private Connection connection;
     private UserDAO userDAO;
     private BudgetDAO budgetDAO;
@@ -23,10 +25,10 @@ public class BudgetDAOImplTest {
     @BeforeEach
     public void prepareConnection() {
         try {
-            this.connection = PGUtil.getDataSource().getConnection();
+            this.dataSource = PGUtil.getDataSource();
             this.connection.setAutoCommit(false);
-            this.userDAO = new UserDAOImpl(this.connection);
-            this.budgetDAO = new BudgetDAOImpl(this.connection);
+            this.userDAO = new UserDAOImpl(this.dataSource);
+            this.budgetDAO = new BudgetDAOImpl(this.dataSource);
 
             // Load test data.
             User user = new User();
@@ -44,6 +46,8 @@ public class BudgetDAOImplTest {
             user = userDAO.save(user).get();
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

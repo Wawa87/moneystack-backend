@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.ObjectMapper;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,7 +23,7 @@ public class BudgetDAOImpl implements BudgetDAO {
     private static final Logger logger = LoggerFactory.getLogger(BudgetDAOImpl.class);
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private final Connection connection;
+    private final DataSource dataSource;
 
     private static final String TABLE = "ms_budgets";
     private static final String F_ID = "id";
@@ -30,8 +31,8 @@ public class BudgetDAOImpl implements BudgetDAO {
     private static final String F_NAME = "name";
     private static final String F_ISACTIVE = "is_active";
 
-    public BudgetDAOImpl(Connection connection) {
-        this.connection = connection;
+    public BudgetDAOImpl(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -42,7 +43,8 @@ public class BudgetDAOImpl implements BudgetDAO {
             + F_ISACTIVE
             + ") VALUES(?, ?, ?) RETURNING id";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, budget.getUserId());
             stmt.setString(2, budget.getName());
             stmt.setBoolean(3, budget.getActive());
@@ -64,7 +66,8 @@ public class BudgetDAOImpl implements BudgetDAO {
     public Optional<Budget> findById(Long id) {
         String sql = "SELECT * FROM " + TABLE + " WHERE id=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.next()) {
@@ -83,7 +86,8 @@ public class BudgetDAOImpl implements BudgetDAO {
         List<Budget> budgets = new ArrayList<>();
         String sql = "SELECT " + TABLE + ".* FROM " + TABLE + ", ms_users WHERE ms_users.username = ? AND " + TABLE + ".user_id = ms_users.id";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             try (ResultSet resultSet = stmt.executeQuery()) {
                 while (resultSet.next()) {
@@ -105,7 +109,8 @@ public class BudgetDAOImpl implements BudgetDAO {
             + F_NAME + "=?,"
             + F_ISACTIVE + "=? WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, budget.getUserId());
             stmt.setString(2, budget.getName());
             stmt.setBoolean(3, budget.getActive());
@@ -122,7 +127,8 @@ public class BudgetDAOImpl implements BudgetDAO {
     public int deleteById(Long id) {
         String sql = "DELETE FROM " + TABLE + " WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
 
             return stmt.executeUpdate();
@@ -136,7 +142,8 @@ public class BudgetDAOImpl implements BudgetDAO {
     public int delete(Budget budget) {
         String sql = "DELETE FROM " + TABLE + " WHERE " + F_ID + "=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, budget.getId());
 
             return stmt.executeUpdate();
