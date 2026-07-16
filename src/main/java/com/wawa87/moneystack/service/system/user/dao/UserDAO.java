@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface UserDAO {
     // Create
-    Optional<User> save(User user) throws Exception;
+    Optional<User> save(User user);
 
     // Read
     Optional<User> findById(Long id);

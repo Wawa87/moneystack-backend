@@ -1,14 +1,11 @@
 package com.wawa87.moneystack.service.system.category;
 
-import com.wawa87.moneystack.service.auth.AuthorizationChecker;
+import com.wawa87.moneystack.service.auth.util.AuthorizationChecker;
 import com.wawa87.moneystack.service.system.category.dao.CategoryDAO;
 import com.wawa87.moneystack.service.system.category.dao.CategoryDTO;
 import com.wawa87.moneystack.service.system.category.model.Category;
 import com.wawa87.moneystack.service.system.db.ResultStatus;
 
-import javax.xml.transform.Result;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 

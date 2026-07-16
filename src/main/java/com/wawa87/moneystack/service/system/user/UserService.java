@@ -3,12 +3,11 @@ package com.wawa87.moneystack.service.system.user;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
-import com.wawa87.moneystack.service.auth.AuthorizationService;
-import com.wawa87.moneystack.service.auth.AuthorizationChecker;
-import com.wawa87.moneystack.service.auth.UsernameValidationResponse;
+import com.wawa87.moneystack.service.auth.service.AuthorizationService;
+import com.wawa87.moneystack.service.system.exceptions.BadRequestException;
+import com.wawa87.moneystack.service.system.exceptions.InvalidUsernameException;
+import com.wawa87.moneystack.service.system.exceptions.NotFoundException;
 import com.wawa87.moneystack.service.system.exceptions.ValidationException;
-import com.wawa87.moneystack.service.system.db.ResultStatus;
-import com.wawa87.moneystack.service.system.user.model.RegistrationResult;
 import com.wawa87.moneystack.service.system.user.dao.UserDAO;
 import com.wawa87.moneystack.service.system.user.model.UserRequest;
 import com.wawa87.moneystack.service.system.user.model.UserResponse;
@@ -34,15 +33,12 @@ public class UserService {
         this.authorizationService = authorizationService;
     }
 
-    public RegistrationResult register(UserRequest userRequest) {
+    public UserResponse register(UserRequest userRequest) throws InvalidUsernameException, BadRequestException {
         // Transform username to lower case.
         userRequest.setUsername(userRequest.getUsername().toLowerCase());
 
         // Validate available username.
-        UsernameValidationResponse usernameValidationResponse = validateNewUsername(userRequest.getUsername());
-        if (!usernameValidationResponse.getResult()) {
-            return RegistrationResult.newRegistrationResult(null , false, usernameValidationResponse.getMessage());
-        }
+        validateNewUsername(userRequest.getUsername());
 
         // Process phone number formatting.
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
@@ -51,11 +47,10 @@ public class UserService {
             if (phoneNumberUtil.isValidNumber(number)) {
                 userRequest.setPhoneNumber(phoneNumberUtil.format(number, PhoneNumberUtil.PhoneNumberFormat.E164));
             } else {
-                return RegistrationResult.newRegistrationResult(null, false, "Phone number validation failed.");
+                throw new BadRequestException("Phone number validation failed.");
             }
         } catch (NumberParseException e) {
-            logger.error(e.getLocalizedMessage());
-            return RegistrationResult.newRegistrationResult(null, false, "Phone number validation failed.");
+            throw new BadRequestException("Phone number validation failed.", e);
         }
 
         // Hash the password.
@@ -68,39 +63,60 @@ public class UserService {
             Optional<User> res = userDAO.save(user);
 
             if (res.isPresent()) {
-                user = res.get();
+                user = res.get(); // Get the new User with populated id.
 
                 // Create response object.
                 UserResponse userResponse = UserResponse.convertUserToResponse(user);
-                return new RegistrationResult(userResponse, true, "Registered new user: " + userResponse.getUsername());
+                return userResponse;
             } else {
-                return new RegistrationResult(null, false, "Error registering new user: " + userRequest.getUsername());
+                throw new BadRequestException("Error registering the new user: " + userRequest.getUsername());
             }
         } catch (Exception e) {
-            return new RegistrationResult(null, false, "Error registering new user: " + userRequest.getUsername());
+            throw new BadRequestException("Error registering the new user: " + userRequest.getUsername());
         }
     }
 
-    public UserResponse authenticate(String username, String password) {
-        Optional<User> res = userDAO.findByUsername(username);
-        if (res.isPresent()) {
-            User user = res.get();
-            boolean validPw = argon2.verify(user.getPasswordHash(), password);
-
-            if (validPw) {
-                return UserResponse.convertUserToResponse(user);
-            }
+    public UserResponse saveNewUser(UserRequest userRequest, String currentUsername) throws ValidationException, InvalidUsernameException, BadRequestException {
+        // Authorize admin only.
+        if (!this.authorizationService.isAdminRole(currentUsername)) {
+            throw new ValidationException();
         }
-        return null;
+
+        // Transform username to lower case.
+        userRequest.setUsername(userRequest.getUsername().toLowerCase());
+
+        // Validate available username.
+        validateNewUsername(userRequest.getUsername());
+
+        // Hash the password.
+        String hash = hashPw(userRequest.getPassword());
+        userRequest.setPassword(hash);
+
+        // Save new User.
+        Optional<User> userOpt = this.userDAO.save(UserRequest.convertToUser(userRequest));
+        if (userOpt.isEmpty()) throw new BadRequestException();
+        return UserResponse.convertUserToResponse(userOpt.get());
+    }
+
+    public UserResponse authenticate(String username, String password) throws ValidationException {
+        Optional<User> res = userDAO.findByUsername(username);
+        User user = res.get();
+        boolean validPw = argon2.verify(user.getPassword(), password);
+
+        if (validPw) {
+            return UserResponse.convertUserToResponse(user);
+        } else {
+            throw new ValidationException("Invalid username or password.");
+        }
     }
 
     public boolean changePassword(String username, String oldPassword, String newPassword) {
         Optional<User> res = userDAO.findByUsername(username);
         if (res.isPresent()) {
-            if (argon2.verify(res.get().getPasswordHash(), oldPassword)) {
+            if (argon2.verify(res.get().getPassword(), oldPassword)) {
                 String updatePw = hashPw(newPassword);
                 User user = res.get();
-                user.setPasswordHash(updatePw);
+                user.setPassword(updatePw);
                 userDAO.update(user);
                 return true;
             }
@@ -108,33 +124,23 @@ public class UserService {
         return false;
     }
 
-    public UserResponse findUserById(Long requesterId, Long requestedId) throws ValidationException {
+    public UserResponse findUserById(Long requesterId, Long requestedId) throws NotFoundException, ValidationException {
         if (!authorizationService.authorizeForUser(requesterId, requestedId)) {
             throw new ValidationException();
         }
         Optional<User> userOpt = userDAO.findById(requestedId);
-        if (userOpt.isEmpty()) return null;
+        if (userOpt.isEmpty()) throw new NotFoundException();
         return UserResponse.convertUserToResponse(userOpt.get());
     }
 
-    public UserResponse findUserByUsername(String username) {
+    public UserResponse findUserByUsername(String username) throws NotFoundException {
         Optional<User> userOpt = userDAO.findByUsername(username);
-        if (userOpt.isEmpty()) return null;
+        if (userOpt.isEmpty()) throw new NotFoundException();
         return UserResponse.convertUserToResponse(userOpt.get());
     }
 
-    public UsernameValidationResponse validateNewUsername(String username) {
-        if (username == null || username.isBlank()) return UsernameValidationResponse.newValidationResponse(false, "Username is blank."); // Check for null, empty, or whitespace.
-        if (!username.matches("^[a-zA-Z0-9]+$")) return UsernameValidationResponse.newValidationResponse(false, "Username must be alphanumeric characters only."); // Check for alphanumeric characters only.
-
-        Optional<User> userOpt = userDAO.findByUsername(username.toLowerCase());
-        if (userOpt.isPresent()) return UsernameValidationResponse.newValidationResponse(false, "Username is already taken."); // Check if username is already taken.
-        return UsernameValidationResponse.newValidationResponse(true, "Username is available: " + username.toLowerCase());
-    }
-
-    public List<UserResponse> getUsers(String username) throws ValidationException {
-        // TODO: Implement proper authorization check.
-        if (!AuthorizationChecker.authorizeAdminUsername(username)) {
+    public List<UserResponse> getUsers(String currentUsername) throws ValidationException {
+        if (!this.authorizationService.isAdminRole(currentUsername)) {
             throw new ValidationException();
         }
 
@@ -146,44 +152,72 @@ public class UserService {
         return usersResponse;
     }
 
-    public ResultStatus updateUser(Long id, UserRequest userRequest) {
+    public UserResponse updateUser(Long id, User user, String currentUsername) throws ValidationException, NotFoundException, BadRequestException, InvalidUsernameException {
+        // Authorize admin only.
+        if (!this.authorizationService.isAdminRole(currentUsername)) {
+            throw new ValidationException();
+        }
+
         // Transform username to lower case.
-        userRequest.setUsername(userRequest.getUsername().toLowerCase());
+        user.setUsername(user.getUsername().toLowerCase());
 
-        // Return matching User record from database.
+        // Get current User record from database.
         Optional<User> userOpt = userDAO.findById(id);
-        if (userOpt.isEmpty()) return ResultStatus.NOT_FOUND; // Return not found error.
+        if (userOpt.isEmpty()) throw new NotFoundException(); // Return not found error.
 
-        // Update the User.
+        // Update the User from UserRequest.
         User updatedUser = userOpt.get();
-        updatedUser.setUsername(userRequest.getUsername());
-        updatedUser.setEmails((ArrayList<String>) userRequest.getEmails());
-        updatedUser.setFirstName(userRequest.getFirstName());
-        updatedUser.setLastName(userRequest.getLastName());
-        updatedUser.setPhoneNumber(userRequest.getPhoneNumber());
-        updatedUser.setPasswordHash(userRequest.getPassword());
+        updatedUser.setUsername(user.getUsername().toLowerCase());
+        updatedUser.setEmails((ArrayList<String>) user.getEmails());
+        updatedUser.setFirstName(user.getFirstName());
+        updatedUser.setLastName(user.getLastName());
+        updatedUser.setPhoneNumber(user.getPhoneNumber());
 
-        // Return the result code. Success == 1, Error == 0.
+        // Validate available username.
+        validateNewUsername(updatedUser.getUsername());
+
+        // Hash the password.
+        String hash = hashPw(updatedUser.getPassword());
+        updatedUser.setPassword(hash);
+
+        // Update User record.
         int result = userDAO.update(updatedUser); // Returns 1 for row updated. Returns 0 for error/no rows updated.
-        if (result == 1) return ResultStatus.SUCCESS;
-        else return ResultStatus.ERROR;
+        if (result == 1) {
+            return UserResponse.convertUserToResponse(updatedUser);
+        } else {
+            throw new BadRequestException();
+        }
     }
 
     public int deleteUser(User user) {
         return userDAO.delete(user);
     }
 
-    public ResultStatus deleteUserById(Long id, Long byUserId) {
-        Optional<User> userOpt = userDAO.findById(id);
-        if (userOpt.isEmpty()) return ResultStatus.NOT_FOUND; // Return not found error.
-        // TODO: Implement authorization check.
+    public void deleteUserById(Long deleteUserId, Long currentUserId) throws ValidationException, NotFoundException, BadRequestException {
+        // Authorize admin only.
+        if (!this.authorizationService.isAdminRole(currentUserId)) {
+            throw new ValidationException();
+        }
 
-        int result = userDAO.deleteById(id);
-        if (result == 1) return ResultStatus.SUCCESS;
-        else return ResultStatus.ERROR;
+        Optional<User> userOpt = userDAO.findById(deleteUserId);
+        if (userOpt.isEmpty()) throw new NotFoundException();
+
+        // Delete the User.
+        int result = userDAO.deleteById(deleteUserId);
+        if (result != 1) throw new BadRequestException();
     }
 
     private String hashPw(String password) {
         return argon2.hash(22,  65536, 1, password);
+    }
+
+    // Validation methods.
+    public boolean validateNewUsername(String username) throws InvalidUsernameException {
+        if (username == null || username.isBlank()) throw new InvalidUsernameException("Username is blank."); // Check for null, empty, or whitespace.
+        if (!username.matches("^[a-zA-Z0-9]+$")) throw new InvalidUsernameException("Username must be alphanumeric characters only."); // Check for alphanumeric characters only.
+
+        Optional<User> userOpt = userDAO.findByUsername(username.toLowerCase());
+        if (userOpt.isPresent()) throw new InvalidUsernameException("Username is already taken."); // Check if username is already taken.
+        return true;
     }
 }

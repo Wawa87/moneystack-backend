@@ -1,4 +1,4 @@
-package com.wawa87.moneystack.service.auth;
+package com.wawa87.moneystack.service.auth.model;
 
 public class UsernameValidationRequest {
     public String getUsername() {

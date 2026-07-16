@@ -1,62 +1,46 @@
 package com.wawa87.moneystack;
 
-import com.wawa87.moneystack.service.app.*;
-import com.wawa87.moneystack.service.auth.*;
-import com.wawa87.moneystack.service.system.budget.BudgetService;
-import com.wawa87.moneystack.service.system.budget.dao.BudgetDAO;
-import com.wawa87.moneystack.service.system.budget.dao.BudgetDAOImpl;
-import com.wawa87.moneystack.service.system.category.CategoryService;
-import com.wawa87.moneystack.service.system.category.dao.CategoryDAO;
-import com.wawa87.moneystack.service.system.category.dao.CategoryDAOImpl;
-import com.wawa87.moneystack.service.system.month.MonthService;
-import com.wawa87.moneystack.service.system.month.dao.MonthDAO;
-import com.wawa87.moneystack.service.system.month.dao.MonthDAOImpl;
-import com.wawa87.moneystack.service.system.subcategory.SubcategoryService;
-import com.wawa87.moneystack.service.system.subcategory.dao.SubcategoryDAO;
-import com.wawa87.moneystack.service.system.subcategory.dao.SubcategoryDAOImpl;
-import com.wawa87.moneystack.service.system.transaction.TransactionService;
-import com.wawa87.moneystack.service.system.transaction.dao.TransactionDAO;
-import com.wawa87.moneystack.service.system.transaction.dao.TransactionDAOImpl;
-import com.wawa87.moneystack.service.system.user.UserService;
-import com.wawa87.moneystack.service.system.user.dao.UserDAO;
-import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
-import com.wawa87.moneystack.service.system.db.PGUtil;
-import de.mkammerer.argon2.Argon2;
+import com.wawa87.moneystack.service.app.filter.AuthenticationFilter;
+import com.wawa87.moneystack.service.app.servlet.CategoryServlet;
+import com.wawa87.moneystack.service.app.servlet.UserServlet;
+import com.wawa87.moneystack.service.auth.servlet.AuthenticationServlet;
+import com.wawa87.moneystack.service.auth.servlet.RegistrationServlet;
+import com.wawa87.moneystack.service.auth.servlet.UsernameValidationServlet;
 import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-import javax.sql.DataSource;
 import java.util.EnumSet;
-import java.util.Properties;
 
 public class App {
+    private static AppContext ctx;
 
     public static void main(String[] args) throws Exception {
         // Initizalize
-        DataSource dataSource = PGUtil.getDataSource();
-        Argon2 argon2 = Argon2Util.getArgon2();
-
-        Loader loader = new Loader();
-        Properties properties = loader.loadPropertiesFile("application.properties");
-        JwtUtil jwtUtil = new JwtUtil(properties.getProperty("JWT_SECRET"), properties.getProperty("JWT_SECRET"));
-
-        UserDAO userDAO = new UserDAOImpl(dataSource);
-        BudgetDAO budgetDAO = new BudgetDAOImpl(dataSource);
-        CategoryDAO categoryDAO = new CategoryDAOImpl(dataSource);
-        SubcategoryDAO subcategoryDAO = new SubcategoryDAOImpl(dataSource);
-        MonthDAO monthDAO = new MonthDAOImpl(dataSource);
-        TransactionDAO transactionDAO = new TransactionDAOImpl(dataSource);
-
-        AuthorizationServiceServiceImpl authorizationServiceImpl = new AuthorizationServiceServiceImpl(userDAO);
-        UserService userService = new UserService(userDAO, argon2, authorizationServiceImpl);
-        BudgetService budgetService = new BudgetService(budgetDAO);
-        CategoryService categoryService = new CategoryService(categoryDAO);
-        SubcategoryService subcategoryService = new SubcategoryService(subcategoryDAO);
-        MonthService monthService = new MonthService(monthDAO);
-        TransactionService transactionService = new TransactionService(transactionDAO, categoryService, subcategoryService);
+        ctx = new AppContext();
+//        DataSource dataSource = PGUtil.getDataSource();
+//        Argon2 argon2 = Argon2Util.getArgon2();
+//
+//        Loader loader = new Loader();
+//        Properties properties = loader.loadPropertiesFile("application.properties");
+//        JwtUtil jwtUtil = new JwtUtil(properties.getProperty("JWT_SECRET"), properties.getProperty("JWT_SECRET"));
+//
+//        UserDAO userDAO = new UserDAOImpl(dataSource);
+//        BudgetDAO budgetDAO = new BudgetDAOImpl(dataSource);
+//        CategoryDAO categoryDAO = new CategoryDAOImpl(dataSource);
+//        SubcategoryDAO subcategoryDAO = new SubcategoryDAOImpl(dataSource);
+//        MonthDAO monthDAO = new MonthDAOImpl(dataSource);
+//        TransactionDAO transactionDAO = new TransactionDAOImpl(dataSource);
+//
+//        AuthorizationServiceImpl authorizationServiceImpl = new AuthorizationServiceImpl(userDAO, categoryDAO, subcategoryDAO, budgetDAO, monthDAO, transactionDAO);
+//        UserService userService = new UserService(userDAO, argon2, authorizationServiceImpl);
+//        BudgetService budgetService = new BudgetService(budgetDAO);
+//        CategoryService categoryService = new CategoryService(categoryDAO);
+//        SubcategoryService subcategoryService = new SubcategoryService(subcategoryDAO);
+//        MonthService monthService = new MonthService(monthDAO);
+//        TransactionService transactionService = new TransactionService(transactionDAO, categoryService, subcategoryService);
 
         // Start server.
         Server server = new Server(8080);
@@ -96,26 +80,26 @@ public class App {
 //                EnumSet.of(DispatcherType.REQUEST)
 //        );
 
-        FilterHolder authenticationFilter = new FilterHolder(new AuthenticationFilter(jwtUtil, userService));
+        FilterHolder authenticationFilter = new FilterHolder(new AuthenticationFilter(ctx));
         context.addFilter(
                 authenticationFilter,
                 "/*",
                 EnumSet.of(DispatcherType.REQUEST)
         );
 
-        ServletHolder authenticationServlet = new ServletHolder(new AuthenticationServlet(jwtUtil, userService));
+        ServletHolder authenticationServlet = new ServletHolder(new AuthenticationServlet(ctx));
         context.addServlet(authenticationServlet, "/login");
 
-        ServletHolder registrationServlet = new ServletHolder(new RegistrationServlet(userService));
+        ServletHolder registrationServlet = new ServletHolder(new RegistrationServlet(ctx));
         context.addServlet(registrationServlet, "/register");
 
-        ServletHolder profileServlet = new ServletHolder(new UserServlet(userService));
+        ServletHolder profileServlet = new ServletHolder(new UserServlet(ctx));
         context.addServlet(profileServlet, "/users/*");
 
-        ServletHolder usernameValidationServlet = new ServletHolder(new UsernameValidationServlet(userService));
+        ServletHolder usernameValidationServlet = new ServletHolder(new UsernameValidationServlet(ctx));
         context.addServlet(usernameValidationServlet, "/validateNewUsername");
 
-        ServletHolder categoryServlet = new ServletHolder(new CategoryServlet(categoryService));
+        ServletHolder categoryServlet = new ServletHolder(new CategoryServlet(ctx));
         context.addServlet(categoryServlet, "/categories/*");
 
         server.start();

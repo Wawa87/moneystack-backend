@@ -42,7 +42,7 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public Optional<User> save(User user) throws Exception {
+    public Optional<User> save(User user) {
         String sql = "INSERT INTO " + TABLE + " ("
                 + F_USERNAME + ","
                 + F_EMAILS + ","
@@ -62,20 +62,19 @@ public class UserDAOImpl implements UserDAO {
             stmt.setString(3, user.getFirstName());
             stmt.setString(4, user.getLastName());
             stmt.setString(5, user.getPhoneNumber());
-            stmt.setString(6, user.getPasswordHash());
+            stmt.setString(6, user.getPassword());
 
-            try (ResultSet resultSet = stmt.executeQuery()) {
-                if (resultSet.next()) {
-                    user.setId(resultSet.getLong(1));
-                    LocalDateTime createdAt = LocalDateTime.parse(resultSet.getString("created_at"), formatter);
-                    user.setCreatedAt(createdAt);
-                    return Optional.of(user);
-                }
-                return Optional.empty();
+            ResultSet resultSet = stmt.executeQuery();
+            if (resultSet.next()) {
+                user.setId(resultSet.getLong(1));
+                LocalDateTime createdAt = LocalDateTime.parse(resultSet.getString("created_at"), formatter);
+                user.setCreatedAt(createdAt);
+                return Optional.of(user);
             }
+            return Optional.empty();
         } catch (SQLException e) {
             logger.error("SQLException: ", e);
-            throw new Exception(e.getMessage());
+            return Optional.empty();
         }
     }
 
@@ -162,7 +161,7 @@ public class UserDAOImpl implements UserDAO {
             String updatedAtStr = updatedAt.format(formatter).toString();
             stmt.setTimestamp(6, Timestamp.valueOf(updatedAt));
 
-            stmt.setString(7, user.getPasswordHash());
+            stmt.setString(7, user.getPassword());
 
             stmt.setLong(8, user.getId());
 
@@ -222,7 +221,7 @@ public class UserDAOImpl implements UserDAO {
             user.setUpdatedAt(LocalDateTime.parse(rs.getString("updated_at"), formatter));
         }
 
-        user.setPasswordHash(rs.getString("password_hash"));
+        user.setPassword(rs.getString("password_hash"));
 
         return user;
     }

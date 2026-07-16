@@ -1,4 +1,4 @@
-package com.wawa87.moneystack.service.auth;
+package com.wawa87.moneystack.service.auth.util;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;

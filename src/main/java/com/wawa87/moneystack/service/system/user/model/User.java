@@ -78,11 +78,11 @@ public class User {
         this.updatedAt = updatedAt;
     }
 
-    public String getPasswordHash() {
+    public String getPassword() {
         return passwordHash;
     }
 
-    public void setPasswordHash(String passwordHash) {
+    public void setPassword(String passwordHash) {
         this.passwordHash = passwordHash;
     }
 }

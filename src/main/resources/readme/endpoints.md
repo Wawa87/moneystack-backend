@@ -21,21 +21,70 @@ Servlet for User data.
 ### GET /user/all
 Access: Admin only
 
+#### Response:
+`
+[
+    {
+        "id": 203,
+        "username": "dev",
+        "emails": [
+            "dev@test.com"
+        ],
+        "firstName": "Dev",
+        "lastName": "Use",
+        "phoneNumber": "+17602221111",
+        "createdAt": "2026-07-16T15:58:07.482409",
+        "updatedAt": null
+    }
+]
+`
+
 ### GET /user/{id}
+
+#### Response:
+`
+{
+    "id": 203,
+    "username": "dev",
+    "emails": [
+        "dev@test.com"
+    ],
+    "firstName": "Dev",
+    "lastName": "Use",
+    "phoneNumber": "+17602221111",
+    "createdAt": "2026-07-16T15:58:07.482409",
+    "updatedAt": null
+}
+`
 
 ### POST /user
 Access: Admin only
 
-Payload:
-
+#### Request:
 `
 {
-    "username": <username>,
-    "firstName": <firstName>,
-    "lastName": <lastName>,
-    "emails": [<email1>, <email2>],
-    "phoneNumber": <phoneNumber>,
-    "password": <password>
+    "username": "michael",
+    "firstName": "Michael",
+    "lastName": "Scott",
+    "emails": ["michael.scott@office.com"],
+    "phoneNumber": "+17602220001",
+    "password": "testpass"
+}
+`
+
+#### Response:
+`
+{
+    "id": 204,
+    "username": "michael",
+    "emails": [
+        "michael.scott@office.com"
+    ],
+    "firstName": "Michael",
+    "lastName": "Scott",
+    "phoneNumber": "+17602220001",
+    "createdAt": "2026-07-16T16:07:30.270018",
+    "updatedAt": null
 }
 `
 
@@ -44,16 +93,33 @@ Update user details. Restricted to admin-only - there are separate workflows for
 
 Access: Admin only
 
-Payload:
-
+#### Request:
 `
 {
-    "username": <username>,
-    "firstName": <firstName>,
-    "lastName": <lastName>,
-    "emails": [<email1>, <email2>],
-    "phoneNumber": <phoneNumber>,
-    "password": <password>
+    "username": "mscott",
+    "firstName": "Boss",
+    "lastName": "Man",
+    "emails": [
+        "mscott@office.com"
+    ],
+    "phoneNumber": "+17602220011",
+    "password": "newPass"
+}
+`
+
+#### Response:
+`
+{
+    "id": 204,
+    "username": "mscott",
+    "emails": [
+        "mscott@office.com"
+    ],
+    "firstName": "Boss",
+    "lastName": "Man",
+    "phoneNumber": "+17602220011",
+    "createdAt": "2026-07-16T16:07:30.270018",
+    "updatedAt": "2026-07-16T16:12:11.615297400"
 }
 `
 
@@ -67,7 +133,7 @@ Payload:
 // TODO: Implement phone number update workflow.
 
 ### DELETE /user/{id}
-// TODO: Implement user delete endpoint.
+User delete endpoint.
 
 Access: Admin only
 
@@ -76,16 +142,31 @@ Servlet for User registration.
 
 ### POST /register
 
-Payload:
-
+#### Request:
 `
 {
-    "username": <username>,
-    "firstName": <firstName>,
-    "lastName": <lastName>,
-    "emails": [<email1>, <email2>],
-    "phoneNumber": <phoneNumber>,
-    "password": <password>
+    "username": "dev",
+    "emails": ["dev@test.com"],
+    "firstName": "Dev",
+    "lastName": "Use",
+    "password": "dev",
+    "phoneNumber": "+17602221111"
+}
+`
+
+#### Response:
+`
+{
+    "id": 203,
+    "username": "dev",
+    "emails": [
+        "dev@test.com"
+    ],
+    "firstName": "Dev",
+    "lastName": "Use",
+    "phoneNumber": "+17602221111",
+    "createdAt": "2026-07-16T15:58:07.482409",
+    "updatedAt": null
 }
 `
 
@@ -93,11 +174,27 @@ Payload:
 Servlet for authentication. Sets the JWT cookie upon successful authentication.
 
 ### POST /login
-Payload:
+#### Request:
 `
 {
-    "username": <username>,
-    "password": <password>
+    "username": "dev",
+    "password": "dev"
+}
+`
+
+#### Response:
+`
+{
+    "id": 203,
+    "username": "dev",
+    "emails": [
+        "dev@test.com"
+    ],
+    "firstName": "Dev",
+    "lastName": "Use",
+    "phoneNumber": "+17602221111",
+    "createdAt": "2026-07-16T15:58:07.482409",
+    "updatedAt": null
 }
 `
 

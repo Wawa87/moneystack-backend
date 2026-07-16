@@ -1,8 +1,7 @@
-package com.wawa87.moneystack.service.app;
+package com.wawa87.moneystack.service.app.servlet;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import com.wawa87.moneystack.AppContext;
 import com.wawa87.moneystack.service.system.category.CategoryService;
 import com.wawa87.moneystack.service.system.category.dao.CategoryDTO;
 import com.wawa87.moneystack.service.system.category.model.Category;
@@ -20,12 +19,12 @@ import java.util.List;
 
 public class CategoryServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(CategoryServlet.class);
+    AppContext ctx;
     CategoryService categoryService;
-    Gson gson;
 
-    public CategoryServlet(CategoryService categoryService) {
-        this.categoryService = categoryService;
-        this.gson = new Gson();
+    public CategoryServlet(AppContext ctx) {
+        this.ctx = ctx;
+        this.categoryService = this.ctx.getCategoryService();
     }
 
     @Override
@@ -62,7 +61,7 @@ public class CategoryServlet extends HttpServlet {
         Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
 
         try {
-            CategoryDTO categoryDTO = gson.fromJson(request.getReader(), CategoryDTO.class);
+            CategoryDTO categoryDTO = ServletUtility.gson.fromJson(request.getReader(), CategoryDTO.class);
 
             // Validate the object.
             if (categoryDTO == null || categoryDTO.getName() == null || categoryDTO.getName().isBlank()) {
@@ -101,7 +100,7 @@ public class CategoryServlet extends HttpServlet {
             Long categoryId = Long.valueOf(pathInfo[1]);
 
             // Read payload into object.
-            CategoryDTO categoryDTO = gson.fromJson(request.getReader(), CategoryDTO.class);
+            CategoryDTO categoryDTO = ServletUtility.gson.fromJson(request.getReader(), CategoryDTO.class);
 
             // Validate the object.
             if (categoryDTO == null || categoryDTO.getName() == null || categoryDTO.getName().isBlank()) {
@@ -175,7 +174,7 @@ public class CategoryServlet extends HttpServlet {
 
         try (BufferedReader bufferedReader = request.getReader()) {
             bufferedReader.lines().forEach(line -> { stringBuilder.append(line);});
-            CategoryDTO categoryData = this.gson.fromJson(stringBuilder.toString(), CategoryDTO.class);
+            CategoryDTO categoryData = ServletUtility.gson.fromJson(stringBuilder.toString(), CategoryDTO.class);
             return categoryData;
         }
     }

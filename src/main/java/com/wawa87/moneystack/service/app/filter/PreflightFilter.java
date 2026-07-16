@@ -1,4 +1,4 @@
-package com.wawa87.moneystack.service.app;
+package com.wawa87.moneystack.service.app.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

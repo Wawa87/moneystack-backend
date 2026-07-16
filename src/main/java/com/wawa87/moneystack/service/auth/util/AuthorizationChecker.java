@@ -1,4 +1,4 @@
-package com.wawa87.moneystack.service.auth;
+package com.wawa87.moneystack.service.auth.util;
 
 import com.wawa87.moneystack.service.system.category.model.Category;
 

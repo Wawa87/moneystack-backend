@@ -1,6 +1,7 @@
 package com.wawa87.moneystack.service.system.user.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserResponse {
@@ -88,5 +89,18 @@ public class UserResponse {
         userResponse.setCreatedAt(user.getCreatedAt());
         userResponse.setUpdatedAt(user.getUpdatedAt());
         return userResponse;
+    }
+
+    public static User convertResponseToUser(UserResponse userResponse) {
+        User user = new User();
+        user.setId(userResponse.getId());
+        user.setUsername(userResponse.getUsername());
+        user.setEmails((ArrayList<String>) userResponse.getEmails());
+        user.setFirstName(userResponse.getFirstName());
+        user.setLastName(userResponse.getLastName());
+        user.setPhoneNumber(userResponse.getPhoneNumber());
+        user.setCreatedAt(userResponse.getCreatedAt());
+        userResponse.setUpdatedAt(userResponse.getUpdatedAt());
+        return user;
     }
 }
