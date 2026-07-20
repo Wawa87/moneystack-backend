@@ -1,5 +1,6 @@
 package com.wawa87.moneystack.service.app.filter;
 
+import com.auth0.jwt.interfaces.Claim;
 import com.wawa87.moneystack.AppContext;
 import com.wawa87.moneystack.service.auth.util.JwtUtil;
 import com.wawa87.moneystack.service.system.db.ServletUtility;
@@ -14,6 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class AuthenticationFilter extends HttpFilter {
@@ -39,18 +42,6 @@ public class AuthenticationFilter extends HttpFilter {
 
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
-            // Get the currentUserId cookie.
-            Optional<Cookie> userIdOpt = Arrays.stream(cookies).filter((it) -> {
-                return it.getName().equals("currentUserId");
-            }).findFirst();
-            if (userIdOpt.isPresent()) request.setAttribute("currentUserId", userIdOpt.get().getValue());
-
-            // Get the currentUsername cookie.
-            Optional<Cookie> usernameOpt = Arrays.stream(cookies).filter((it) -> {
-                return it.getName().equals("currentUsername");
-            }).findFirst();
-            if (usernameOpt.isPresent()) request.setAttribute("currentUsername", usernameOpt.get().getValue());
-
             // Get the access_token cookie.
             Optional<Cookie> tokenOpt = Arrays.stream(cookies).filter((it) -> {
                 return it.getName().equals("access_token");
@@ -61,12 +52,16 @@ public class AuthenticationFilter extends HttpFilter {
                 ServletUtility.sendUnauthorized(response);
                 return;
             } else {
-                String subject = this.jwtUtil.validateAndGetSubject(tokenOpt.get().getValue());
-                // Return bad request if there is no validated subject.
-                if (subject.isBlank()) {
+                Map<String, Claim> claims = this.jwtUtil.validateAndGetClaims(tokenOpt.get().getValue());
+
+                // Return bad request if there is no validated claims.
+                if (claims == null || !claims.containsKey("userId") || claims.get("userId").isMissing()) {
                     ServletUtility.sendUnauthorized(response);
                     return;
                 } else {
+                    request.setAttribute("currentUserId", claims.get("userId").asString());
+                    request.setAttribute("currentUsername", claims.get("username").asString());
+
                     // Continue filter chain for valid token.
                     filterChain.doFilter(request, response);
                     return;

@@ -37,23 +37,10 @@ public class AuthenticationServlet extends HttpServlet {
             AuthenticationRequest authenticationRequest = ServletUtility.gson.fromJson(request.getReader(), AuthenticationRequest.class);
             UserResponse userResponse = this.userService.authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
 
-            String token = this.jwtUtil.generateToken(authenticationRequest.getUsername());
+            String token = this.jwtUtil.generateToken(userResponse.getId() , authenticationRequest.getUsername());
 
             String cookieStr = "access_token=" + token + "; SameSite=None; Secure; HttpOnly; Path=/; Max-Age=900";
             response.setHeader("Set-Cookie", cookieStr);
-
-            Cookie currentUserId = new Cookie("currentUserId", userResponse.getId().toString());
-            currentUserId.setMaxAge(900);
-            currentUserId.setSecure(true);
-            currentUserId.setHttpOnly(true);
-
-            Cookie currentUsername = new Cookie("currentUsername", userResponse.getUsername());
-            currentUsername.setMaxAge(900);
-            currentUsername.setSecure(true);
-            currentUsername.setHttpOnly(true);
-
-            response.addCookie(currentUserId);
-            response.addCookie(currentUsername);
 
             ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, userResponse);
             return;
