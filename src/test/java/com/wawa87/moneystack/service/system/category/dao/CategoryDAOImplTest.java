@@ -1,19 +1,11 @@
 package com.wawa87.moneystack.service.system.category.dao;
 
-import com.wawa87.moneystack.service.system.category.model.Category;
-import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
-import com.wawa87.moneystack.service.system.db.PGUtil;
-import com.wawa87.moneystack.service.system.user.model.User;
+import com.wawa87.moneystack.common.db.PGUtil;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 public class CategoryDAOImplTest {
     private Connection connection;

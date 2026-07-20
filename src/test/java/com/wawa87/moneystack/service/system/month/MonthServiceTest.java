@@ -1,6 +1,7 @@
 package com.wawa87.moneystack.service.system.month;
 
-import com.wawa87.moneystack.service.system.month.model.Month;
+import com.wawa87.moneystack.month.MonthService;
+import com.wawa87.moneystack.month.model.Month;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

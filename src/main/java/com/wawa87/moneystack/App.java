@@ -1,11 +1,11 @@
 package com.wawa87.moneystack;
 
-import com.wawa87.moneystack.service.app.filter.AuthenticationFilter;
-import com.wawa87.moneystack.service.app.servlet.CategoryServlet;
-import com.wawa87.moneystack.service.app.servlet.UserServlet;
-import com.wawa87.moneystack.service.auth.servlet.AuthenticationServlet;
-import com.wawa87.moneystack.service.auth.servlet.RegistrationServlet;
-import com.wawa87.moneystack.service.auth.servlet.UsernameValidationServlet;
+import com.wawa87.moneystack.auth.filter.AuthenticationFilter;
+import com.wawa87.moneystack.category.servlet.CategoryServlet;
+import com.wawa87.moneystack.user.servlet.UserServlet;
+import com.wawa87.moneystack.auth.servlet.AuthenticationServlet;
+import com.wawa87.moneystack.auth.servlet.RegistrationServlet;
+import com.wawa87.moneystack.auth.servlet.UsernameValidationServlet;
 import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.FilterHolder;

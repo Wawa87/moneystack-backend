@@ -1,21 +1,16 @@
 package com.wawa87.moneystack.service.system.subcategory.dao;
 
-import com.wawa87.moneystack.service.system.category.dao.CategoryDAO;
-import com.wawa87.moneystack.service.system.category.dao.CategoryDAOImpl;
-import com.wawa87.moneystack.service.system.category.model.Category;
-import com.wawa87.moneystack.service.system.db.PGUtil;
-import com.wawa87.moneystack.service.system.subcategory.model.Subcategory;
-import com.wawa87.moneystack.service.system.user.dao.UserDAO;
-import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
-import com.wawa87.moneystack.service.system.user.model.User;
-import org.checkerframework.checker.units.qual.C;
+import com.wawa87.moneystack.category.dao.CategoryDAO;
+import com.wawa87.moneystack.category.model.Category;
+import com.wawa87.moneystack.subcategory.dao.SubcategoryDAO;
+import com.wawa87.moneystack.subcategory.model.Subcategory;
+import com.wawa87.moneystack.user.dao.UserDAO;
+import com.wawa87.moneystack.user.model.User;
 import org.junit.jupiter.api.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class SubcategoryDAOImplTest {
     private Connection connection;

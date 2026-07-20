@@ -1,9 +1,9 @@
 package com.wawa87.moneystack.service.auth;
 
 import com.google.gson.Gson;
-import com.wawa87.moneystack.service.system.db.ResponseMessage;
-import com.wawa87.moneystack.service.system.db.ServletUtility;
-import com.wawa87.moneystack.service.system.user.dao.UserDTO;
+import com.wawa87.moneystack.common.db.ResponseMessage;
+import com.wawa87.moneystack.common.db.ServletUtility;
+import com.wawa87.moneystack.user.dao.UserDTO;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;

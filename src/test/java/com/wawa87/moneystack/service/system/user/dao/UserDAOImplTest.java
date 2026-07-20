@@ -1,18 +1,10 @@
 package com.wawa87.moneystack.service.system.user.dao;
 
-import com.wawa87.moneystack.service.system.db.PGUtil;
-import com.wawa87.moneystack.service.system.user.model.User;
+import com.wawa87.moneystack.user.dao.UserDAOImpl;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 public class UserDAOImplTest {
     private DataSource dataSource;

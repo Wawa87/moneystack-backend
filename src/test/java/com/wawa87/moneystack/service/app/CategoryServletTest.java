@@ -2,13 +2,12 @@ package com.wawa87.moneystack.service.app;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.wawa87.moneystack.service.system.category.model.Category;
-import com.wawa87.moneystack.service.system.user.dao.UserDTO;
+import com.wawa87.moneystack.category.model.Category;
+import com.wawa87.moneystack.user.dao.UserDTO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.jsontype.impl.AsExistingPropertyTypeSerializer;
 
 import java.io.IOException;
 import java.net.URI;

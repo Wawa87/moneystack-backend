@@ -1,21 +1,21 @@
 package com.wawa87.moneystack.service.auth;
 
-import com.wawa87.moneystack.service.auth.service.AuthorizationService;
-import com.wawa87.moneystack.service.auth.service.AuthorizationServiceImpl;
-import com.wawa87.moneystack.service.auth.util.Argon2Util;
-import com.wawa87.moneystack.service.system.budget.dao.BudgetDAO;
-import com.wawa87.moneystack.service.system.budget.dao.BudgetDAOImpl;
-import com.wawa87.moneystack.service.system.category.dao.CategoryDAO;
-import com.wawa87.moneystack.service.system.category.dao.CategoryDAOImpl;
-import com.wawa87.moneystack.service.system.month.dao.MonthDAO;
-import com.wawa87.moneystack.service.system.month.dao.MonthDAOImpl;
-import com.wawa87.moneystack.service.system.subcategory.dao.SubcategoryDAO;
-import com.wawa87.moneystack.service.system.subcategory.dao.SubcategoryDAOImpl;
-import com.wawa87.moneystack.service.system.transaction.dao.TransactionDAO;
-import com.wawa87.moneystack.service.system.transaction.dao.TransactionDAOImpl;
-import com.wawa87.moneystack.service.system.user.dao.UserDAO;
-import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
-import com.wawa87.moneystack.service.system.db.PGUtil;
+import com.wawa87.moneystack.auth.service.AuthorizationService;
+import com.wawa87.moneystack.auth.service.AuthorizationServiceImpl;
+import com.wawa87.moneystack.auth.util.Argon2Util;
+import com.wawa87.moneystack.budget.dao.BudgetDAO;
+import com.wawa87.moneystack.budget.dao.BudgetDAOImpl;
+import com.wawa87.moneystack.category.dao.CategoryDAO;
+import com.wawa87.moneystack.category.dao.CategoryDAOImpl;
+import com.wawa87.moneystack.month.dao.MonthDAO;
+import com.wawa87.moneystack.month.dao.MonthDAOImpl;
+import com.wawa87.moneystack.subcategory.dao.SubcategoryDAO;
+import com.wawa87.moneystack.subcategory.dao.SubcategoryDAOImpl;
+import com.wawa87.moneystack.transaction.dao.TransactionDAO;
+import com.wawa87.moneystack.transaction.dao.TransactionDAOImpl;
+import com.wawa87.moneystack.user.dao.UserDAO;
+import com.wawa87.moneystack.user.dao.UserDAOImpl;
+import com.wawa87.moneystack.common.db.PGUtil;
 import de.mkammerer.argon2.Argon2;
 import org.junit.jupiter.api.BeforeEach;
 

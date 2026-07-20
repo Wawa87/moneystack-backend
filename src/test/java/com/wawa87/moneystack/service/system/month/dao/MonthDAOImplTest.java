@@ -1,14 +1,11 @@
 package com.wawa87.moneystack.service.system.month.dao;
 
-import com.wawa87.moneystack.service.system.budget.dao.BudgetDAO;
-import com.wawa87.moneystack.service.system.budget.dao.BudgetDAOImpl;
-import com.wawa87.moneystack.service.system.budget.model.Budget;
-import com.wawa87.moneystack.service.system.db.PGUtil;
-import com.wawa87.moneystack.service.system.month.model.Month;
-import com.wawa87.moneystack.service.system.user.dao.UserDAO;
-import com.wawa87.moneystack.service.system.user.dao.UserDAOImpl;
-import com.wawa87.moneystack.service.system.user.model.User;
-import com.wawa87.moneystack.service.system.user.model.UserRequest;
+import com.wawa87.moneystack.budget.dao.BudgetDAO;
+import com.wawa87.moneystack.budget.model.Budget;
+import com.wawa87.moneystack.month.dao.MonthDAO;
+import com.wawa87.moneystack.month.model.Month;
+import com.wawa87.moneystack.user.dao.UserDAO;
+import com.wawa87.moneystack.user.model.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +15,6 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Year;
-import java.util.ArrayList;
 import java.util.List;
 
 public class MonthDAOImplTest {
