@@ -1,26 +1,28 @@
 package com.wawa87.moneystack;
 
+import com.wawa87.moneystack.auth.service.AuthenticationService;
+import com.wawa87.moneystack.auth.service.AuthenticationServiceImpl;
 import com.wawa87.moneystack.auth.util.Argon2Util;
 import com.wawa87.moneystack.auth.service.AuthorizationService;
 import com.wawa87.moneystack.auth.service.AuthorizationServiceImpl;
 import com.wawa87.moneystack.auth.util.JwtUtil;
-import com.wawa87.moneystack.budget.BudgetService;
+import com.wawa87.moneystack.budget.service.BudgetService;
 import com.wawa87.moneystack.budget.dao.BudgetDAO;
 import com.wawa87.moneystack.budget.dao.BudgetDAOImpl;
-import com.wawa87.moneystack.category.CategoryService;
+import com.wawa87.moneystack.category.service.CategoryService;
 import com.wawa87.moneystack.category.dao.CategoryDAO;
 import com.wawa87.moneystack.category.dao.CategoryDAOImpl;
 import com.wawa87.moneystack.common.db.PGUtil;
-import com.wawa87.moneystack.month.MonthService;
+import com.wawa87.moneystack.month.service.MonthService;
 import com.wawa87.moneystack.month.dao.MonthDAO;
 import com.wawa87.moneystack.month.dao.MonthDAOImpl;
-import com.wawa87.moneystack.subcategory.SubcategoryService;
+import com.wawa87.moneystack.subcategory.service.SubcategoryService;
 import com.wawa87.moneystack.subcategory.dao.SubcategoryDAO;
 import com.wawa87.moneystack.subcategory.dao.SubcategoryDAOImpl;
-import com.wawa87.moneystack.transaction.TransactionService;
+import com.wawa87.moneystack.transaction.service.TransactionService;
 import com.wawa87.moneystack.transaction.dao.TransactionDAO;
 import com.wawa87.moneystack.transaction.dao.TransactionDAOImpl;
-import com.wawa87.moneystack.user.UserService;
+import com.wawa87.moneystack.user.service.UserService;
 import com.wawa87.moneystack.user.dao.UserDAO;
 import com.wawa87.moneystack.user.dao.UserDAOImpl;
 import de.mkammerer.argon2.Argon2;
@@ -42,6 +44,7 @@ public class AppContext {
     MonthDAO monthDAO;
     TransactionDAO transactionDAO;
 
+    AuthenticationService authenticationService;
     AuthorizationService authorizationService;
     UserService userService;
     BudgetService budgetService;
@@ -64,11 +67,13 @@ public class AppContext {
         this.monthDAO = new MonthDAOImpl(this.dataSource);
         this.transactionDAO = new TransactionDAOImpl(this.dataSource);
 
+        this.authenticationService = new AuthenticationServiceImpl(this.argon2, this.userDAO);
         this.authorizationService = new AuthorizationServiceImpl(
                 this.userDAO, this.categoryDAO, this.subcategoryDAO, this.budgetDAO, this.monthDAO, this.transactionDAO);
-        this.userService = new UserService(this.userDAO, this.argon2, this.authorizationService);
+
+        this.userService = new UserService(this.userDAO, this.argon2, this.authenticationService, this.authorizationService);
         this.budgetService = new BudgetService(this.budgetDAO);
-        this.categoryService = new CategoryService(this.categoryDAO);
+        this.categoryService = new CategoryService(this.categoryDAO, this.authorizationService);
         this.subcategoryService = new SubcategoryService(this.subcategoryDAO);
         this.monthService = new MonthService(this.monthDAO);
         this.transactionService = new TransactionService(this.transactionDAO, this.categoryService, this.subcategoryService);
@@ -160,6 +165,14 @@ public class AppContext {
 
     public void setTransactionDAO(TransactionDAO transactionDAO) {
         this.transactionDAO = transactionDAO;
+    }
+
+    public AuthenticationService getAuthenticationService() {
+        return authenticationService;
+    }
+
+    public void setAuthenticationService(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
     }
 
     public AuthorizationService getAuthorizationService() {

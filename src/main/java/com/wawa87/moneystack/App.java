@@ -4,7 +4,7 @@ import com.wawa87.moneystack.auth.filter.AuthenticationFilter;
 import com.wawa87.moneystack.category.servlet.CategoryServlet;
 import com.wawa87.moneystack.user.servlet.UserServlet;
 import com.wawa87.moneystack.auth.servlet.AuthenticationServlet;
-import com.wawa87.moneystack.auth.servlet.RegistrationServlet;
+import com.wawa87.moneystack.user.servlet.RegistrationServlet;
 import com.wawa87.moneystack.auth.servlet.UsernameValidationServlet;
 import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.server.*;

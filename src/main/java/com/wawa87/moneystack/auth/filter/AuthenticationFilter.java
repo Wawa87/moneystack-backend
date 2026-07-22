@@ -4,7 +4,7 @@ import com.auth0.jwt.interfaces.Claim;
 import com.wawa87.moneystack.AppContext;
 import com.wawa87.moneystack.auth.util.JwtUtil;
 import com.wawa87.moneystack.common.db.ServletUtility;
-import com.wawa87.moneystack.user.UserService;
+import com.wawa87.moneystack.user.service.UserService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpFilter;
@@ -34,7 +34,7 @@ public class AuthenticationFilter extends HttpFilter {
     @Override
     public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
         String servletPath = request.getServletPath();
-        if (servletPath.equals("/register") || servletPath.equals("/login")) {
+        if (servletPath.equals("/register") || servletPath.equals("/login") || servletPath.equals("/validateNewUsername")) {
             filterChain.doFilter(request, response);
             return;
         }

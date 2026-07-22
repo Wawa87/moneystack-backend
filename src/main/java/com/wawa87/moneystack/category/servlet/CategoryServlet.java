@@ -2,7 +2,7 @@ package com.wawa87.moneystack.category.servlet;
 
 import com.google.gson.JsonSyntaxException;
 import com.wawa87.moneystack.AppContext;
-import com.wawa87.moneystack.category.CategoryService;
+import com.wawa87.moneystack.category.service.CategoryService;
 import com.wawa87.moneystack.category.dao.CategoryDTO;
 import com.wawa87.moneystack.category.model.Category;
 import com.wawa87.moneystack.common.db.ResultStatus;
