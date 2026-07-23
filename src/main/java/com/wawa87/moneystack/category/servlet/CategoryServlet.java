@@ -3,17 +3,17 @@ package com.wawa87.moneystack.category.servlet;
 import com.google.gson.JsonSyntaxException;
 import com.wawa87.moneystack.AppContext;
 import com.wawa87.moneystack.category.service.CategoryService;
-import com.wawa87.moneystack.category.dao.CategoryDTO;
 import com.wawa87.moneystack.category.model.Category;
-import com.wawa87.moneystack.common.db.ResultStatus;
 import com.wawa87.moneystack.common.db.ServletUtility;
+import com.wawa87.moneystack.common.exceptions.BadRequestException;
+import com.wawa87.moneystack.common.exceptions.NotFoundException;
+import com.wawa87.moneystack.common.exceptions.ValidationException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 
@@ -30,11 +30,12 @@ public class CategoryServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
-        Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
+        Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
+        String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
         // Handle request: /categories
         if (pathInfo.length == 0) {
-            List<Category> categories = categoryService.getCategoriesByUserId(userId);
+            List<Category> categories = categoryService.getCategoriesByUserId(currentUserId);
             ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, categories);
             return;
         }
@@ -44,12 +45,15 @@ public class CategoryServlet extends HttpServlet {
             Long id = Long.valueOf(pathInfo[1]);
 
             try {
-                Category category = categoryService.findCategoryById(id, userId);
+                Category category = categoryService.findCategoryById(id, currentUserId);
                 if (category == null) category = new Category();
                 ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, category);
                 return;
             } catch (IllegalAccessException e) {
-                ServletUtility.sendResponse(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden.");
+                ServletUtility.sendUnauthorized(response);
+                return;
+            } catch (NotFoundException e) {
+                ServletUtility.sendNotFoundException(response, e);
                 return;
             }
         }
@@ -58,28 +62,23 @@ public class CategoryServlet extends HttpServlet {
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) {
         // Handle request: /categories
-        Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
+        String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
+        Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
+        String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
         try {
-            CategoryDTO categoryDTO = ServletUtility.gson.fromJson(request.getReader(), CategoryDTO.class);
-
-            // Validate the object.
-            if (categoryDTO == null || categoryDTO.getName() == null || categoryDTO.getName().isBlank()) {
-                ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Category name is required.");
-                return;
-            }
+//            CategoryDTO categoryDTO = ServletUtility.gson.fromJson(request.getReader(), CategoryDTO.class);
+            Category category = ServletUtility.gson.fromJson(request.getReader(), Category.class);
 
             // Save the category.
-            Category category = categoryService.saveCategory(userId, categoryDTO);
-
-            if (category == null) {
-                ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error. Category not created.");
-            }
+            category = categoryService.saveCategory(currentUserId, category);
             ServletUtility.sendResponseObject(response, HttpServletResponse.SC_CREATED, category);
             return;
+        } catch (BadRequestException e) {
+            ServletUtility.sendBadRequest(response, e);
+            return;
         } catch (Exception e) {
-            logger.error("Error: ", e);
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+            ServletUtility.sendInternalError(response, e);
             return;
         }
     }
@@ -88,10 +87,11 @@ public class CategoryServlet extends HttpServlet {
     public void doPut(HttpServletRequest request, HttpServletResponse response) {
         // Handle request: /categories/{id}
         String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
-        Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
+        Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
+        String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
         if (pathInfo.length != 2) {
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad request.");
+            ServletUtility.sendBadRequest(response);
             return;
         }
 
@@ -100,47 +100,42 @@ public class CategoryServlet extends HttpServlet {
             Long categoryId = Long.valueOf(pathInfo[1]);
 
             // Read payload into object.
-            CategoryDTO categoryDTO = ServletUtility.gson.fromJson(request.getReader(), CategoryDTO.class);
-
-            // Validate the object.
-            if (categoryDTO == null || categoryDTO.getName() == null || categoryDTO.getName().isBlank()) {
-                ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Category name is required.");
-                return;
-            }
+            Category category = ServletUtility.gson.fromJson(request.getReader(), Category.class);
 
             // Update the category.
-            ResultStatus result = categoryService.updateCategory(categoryId, userId, categoryDTO);
-
-            switch (result) {
-                case SUCCESS: ServletUtility.sendResponse(response, HttpServletResponse.SC_NO_CONTENT, ""); break;
-                case FORBIDDEN: ServletUtility.sendResponse(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden."); break;
-                case NOT_FOUND: ServletUtility.sendResponse(response, HttpServletResponse.SC_NOT_FOUND, "Category not found."); break;
-                default: ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
-            }
+            category = categoryService.updateCategory(categoryId, currentUserId, category);
+            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, category);
             return;
         } catch (JsonSyntaxException e) {
-            logger.error("Error: ", e);
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON.");
+            ServletUtility.sendBadRequest(response);
             return;
         } catch (NumberFormatException e) {
-            logger.error("Error: ", e);
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid category id.");
+            ServletUtility.sendBadRequest(response);
+            return;
+        } catch (NotFoundException e) {
+            ServletUtility.sendNotFoundException(response, e);
+            return;
+        } catch (ValidationException e) {
+            ServletUtility.sendValidationException(response, e);
+            return;
+        } catch (BadRequestException e) {
+            ServletUtility.sendBadRequest(response, e);
             return;
         } catch (Exception e) {
-            logger.error("Error: ", e);
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+            ServletUtility.sendInternalError(response, e);
             return;
         }
     }
 
     @Override
     public void doDelete(HttpServletRequest request, HttpServletResponse response) {
-        // Handle request: /categories/{categoryId}
+        // Handle request: /categories/{id}
         String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
-        Long userId = Long.parseLong(String.valueOf(request.getAttribute("userId")));
+        Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
+        String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
         if (pathInfo.length != 2) {
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad request.");
+            ServletUtility.sendBadRequest(response);
             return;
         }
 
@@ -149,33 +144,21 @@ public class CategoryServlet extends HttpServlet {
             Long categoryId = Long.valueOf(pathInfo[1]);
 
             // Delete the category.
-            ResultStatus result = categoryService.deleteCategoryById(categoryId, userId);
-
-            switch (result) {
-                case SUCCESS: ServletUtility.sendResponse(response, HttpServletResponse.SC_NO_CONTENT, ""); break;
-                case FORBIDDEN: ServletUtility.sendResponse(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden."); break;
-                case NOT_FOUND: ServletUtility.sendResponse(response, HttpServletResponse.SC_NOT_FOUND, "Category not found."); break;
-                default: ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
-            }
+            categoryService.deleteCategoryById(categoryId, currentUserId);
+            ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Category deleted.");
             return;
         } catch (NumberFormatException e) {
-            logger.error("Error: ", e);
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid category id.");
+            ServletUtility.sendBadRequest(response);
+            return;
+        } catch (NotFoundException e) {
+            ServletUtility.sendNotFoundException(response, e);
+            return;
+        } catch (ValidationException e) {
+            ServletUtility.sendValidationException(response, e);
             return;
         } catch (Exception e) {
-            logger.error("Error: ", e);
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+            ServletUtility.sendInternalError(response, e);
             return;
-        }
-    }
-
-    private CategoryDTO parseCategory(HttpServletRequest request) throws IOException {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        try (BufferedReader bufferedReader = request.getReader()) {
-            bufferedReader.lines().forEach(line -> { stringBuilder.append(line);});
-            CategoryDTO categoryData = ServletUtility.gson.fromJson(stringBuilder.toString(), CategoryDTO.class);
-            return categoryData;
         }
     }
 }

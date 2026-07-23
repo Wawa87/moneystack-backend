@@ -2,6 +2,7 @@ package com.wawa87.moneystack.auth.service;
 
 import com.wawa87.moneystack.budget.dao.BudgetDAO;
 import com.wawa87.moneystack.category.dao.CategoryDAO;
+import com.wawa87.moneystack.category.model.Category;
 import com.wawa87.moneystack.month.dao.MonthDAO;
 import com.wawa87.moneystack.subcategory.dao.SubcategoryDAO;
 import com.wawa87.moneystack.transaction.dao.TransactionDAO;
@@ -59,6 +60,12 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     @Override
     public boolean authorizeForCategory(Long requesterId, Long objectId) {
         return false;
+    }
+
+    @Override
+    public boolean authorizeForCategory(Long requesterId, Category category) {
+        if (this.isAdminRole(requesterId)) return true; // Allow admin.
+        return requesterId == category.getUserId();
     }
 
     @Override

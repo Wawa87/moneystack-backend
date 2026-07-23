@@ -2,9 +2,10 @@ package com.wawa87.moneystack.category.service;
 
 import com.wawa87.moneystack.auth.service.AuthorizationService;
 import com.wawa87.moneystack.category.dao.CategoryDAO;
-import com.wawa87.moneystack.category.dao.CategoryDTO;
 import com.wawa87.moneystack.category.model.Category;
-import com.wawa87.moneystack.common.db.ResultStatus;
+import com.wawa87.moneystack.common.exceptions.BadRequestException;
+import com.wawa87.moneystack.common.exceptions.NotFoundException;
+import com.wawa87.moneystack.common.exceptions.ValidationException;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,18 +25,14 @@ public class CategoryService {
         return category;
     }
 
-    public Category saveCategory(Long userId, CategoryDTO categoryDTO) {
-        Category category = new Category();
-        category.setUserId(userId);
-        category.setName(categoryDTO.getName());
-        category.setDescription(categoryDTO.getDescription());
-        Optional<Category> categoryOpt = this.categoryDAO.save(category);
-        if (!categoryOpt.isPresent()) return null;
+    public Category saveCategory(Long userId, Category category) throws BadRequestException {
+        Category newCategory = new Category();
+        newCategory.setUserId(userId);
+        newCategory.setName(category.getName());
+        newCategory.setDescription(category.getDescription());
+        Optional<Category> categoryOpt = this.categoryDAO.save(newCategory);
+        if (categoryOpt.isEmpty()) throw new BadRequestException("Category failed to save.");
         else return categoryOpt.get();
-    }
-
-    public void updateCategory(Category category) {
-        this.categoryDAO.update(category);
     }
 
     public List<Category> getCategoriesByUsername(String username) {
@@ -52,37 +49,38 @@ public class CategoryService {
         return categoryOpt.get();
     }
 
-    public Category findCategoryById(Long categoryId, Long userId) throws IllegalAccessException {
+    public Category findCategoryById(Long categoryId, Long requestedById) throws IllegalAccessException, NotFoundException {
         Optional<Category> categoryOpt = categoryDAO.findById(categoryId);
-        if (categoryOpt.isEmpty()) return null;
-        if (!this.authorizationService.authorizeForCategory(userId, categoryId)) throw new IllegalAccessException("Forbidden.");
-        else return categoryOpt.get();
+        if (categoryOpt.isEmpty()) throw new NotFoundException();
+        if (!this.authorizationService.authorizeForCategory(requestedById, categoryOpt.get())) throw new IllegalAccessException("Forbidden.");
+        return categoryOpt.get();
     }
 
-    public ResultStatus updateCategory(Long categoryId, Long userId, CategoryDTO categoryDTO) {
+    public void updateCategory(Category category) {
+        this.categoryDAO.update(category);
+    }
+
+    public Category updateCategory(Long categoryId, Long requesterId, Category category) throws NotFoundException, ValidationException, BadRequestException {
         Optional<Category> categoryOpt = categoryDAO.findById(categoryId);
-        if (categoryOpt.isEmpty()) return ResultStatus.NOT_FOUND; // Return not found error.
-        if (!this.authorizationService.authorizeForCategory(userId, categoryId)) return ResultStatus.FORBIDDEN;
+        if (categoryOpt.isEmpty()) throw new NotFoundException();
+        if (!this.authorizationService.authorizeForCategory(requesterId, categoryOpt.get())) throw new ValidationException();
 
         // Update the Category.
-        Category category = categoryOpt.get();
-        category.setName(categoryDTO.getName());
-        category.setDescription(categoryDTO.getDescription());
+        Category updateCategory = categoryOpt.get();
+        updateCategory.setName(category.getName());
+        updateCategory.setDescription(category.getDescription());
 
         // Return the result code. Success == 1, Error == 0.
-        int result = categoryDAO.update(category); // Returns 1 for row updated. Returns 0 for error/no rows updated.
-        if (result == 1) return ResultStatus.SUCCESS;
-        else return ResultStatus.ERROR;
+        if (categoryDAO.update(updateCategory) == 1) return updateCategory;
+        else throw new BadRequestException("Category update failed.");
     }
 
-    public ResultStatus deleteCategoryById(Long categoryId, Long userId) {
+    public void deleteCategoryById(Long categoryId, Long requesterId) throws NotFoundException, ValidationException, BadRequestException {
         Optional<Category> categoryOpt = categoryDAO.findById(categoryId);
-        if (categoryOpt.isEmpty()) return ResultStatus.NOT_FOUND; // Return not found error.
-        if (!this.authorizationService.authorizeForCategory(userId, categoryId)) return ResultStatus.FORBIDDEN;
+        if (categoryOpt.isEmpty()) throw new NotFoundException();
+        if (!this.authorizationService.authorizeForCategory(requesterId, categoryOpt.get())) throw new ValidationException();
 
-        int result = categoryDAO.deleteById(categoryId);
-        if (result == 1) return ResultStatus.SUCCESS;
-        else return ResultStatus.ERROR;
+        if (categoryDAO.deleteById(categoryId) != 1) throw new BadRequestException("Category delete failed.");
     }
 
     public int deleteCategory(Category category) {
