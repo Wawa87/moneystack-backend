@@ -60,7 +60,7 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
             }
         } catch (SQLException e) {
             logger.error("SQLException: ", e);
-            throw new RuntimeException(e.getMessage());
+            return Optional.empty();
         }
     }
 
@@ -79,7 +79,7 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
             }
         } catch (SQLException e) {
             logger.error("SQLException: ", e);
-            throw new RuntimeException(e.getMessage());
+            return Optional.empty();
         }
     }
 
@@ -100,7 +100,7 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
             }
         } catch (SQLException e) {
             logger.error("SQLException: ", e);
-            throw new RuntimeException(e.getMessage());
+            return subcategories;
         }
     }
 
@@ -124,7 +124,7 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
             return stmt.executeUpdate();
         } catch (SQLException e) {
             logger.error("SQLException: " + e);
-            throw new RuntimeException(e.getMessage());
+            return 0;
         }
     }
 
@@ -139,7 +139,7 @@ public class SubcategoryDAOImpl implements SubcategoryDAO {
             return stmt.executeUpdate();
         } catch (SQLException e) {
             logger.error("SQLException: " + e);
-            throw new RuntimeException(e.getMessage());
+            return 0;
         }
     }
 

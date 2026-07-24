@@ -1,7 +1,7 @@
 package com.wawa87.moneystack.transaction.service;
 
 import com.wawa87.moneystack.category.service.CategoryService;
-import com.wawa87.moneystack.subcategory.service.SubcategoryService;
+import com.wawa87.moneystack.subcategory.service.SubcategoryServiceImpl;
 import com.wawa87.moneystack.transaction.dao.TransactionDAO;
 import com.wawa87.moneystack.transaction.dao.TransactionDTO;
 import com.wawa87.moneystack.transaction.model.Transaction;
@@ -16,9 +16,9 @@ public class TransactionService {
 
     private TransactionDAO transactionDAO;
     private CategoryService categoryService;
-    private SubcategoryService subcategoryService;
+    private SubcategoryServiceImpl subcategoryService;
 
-    public TransactionService(TransactionDAO transactionDAO, CategoryService categoryService, SubcategoryService subcategoryService) {
+    public TransactionService(TransactionDAO transactionDAO, CategoryService categoryService, SubcategoryServiceImpl subcategoryService) {
         this.transactionDAO = transactionDAO;
         this.categoryService = categoryService;
         this.subcategoryService = subcategoryService;

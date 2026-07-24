@@ -16,7 +16,7 @@ import com.wawa87.moneystack.common.db.PGUtil;
 import com.wawa87.moneystack.month.service.MonthService;
 import com.wawa87.moneystack.month.dao.MonthDAO;
 import com.wawa87.moneystack.month.dao.MonthDAOImpl;
-import com.wawa87.moneystack.subcategory.service.SubcategoryService;
+import com.wawa87.moneystack.subcategory.service.SubcategoryServiceImpl;
 import com.wawa87.moneystack.subcategory.dao.SubcategoryDAO;
 import com.wawa87.moneystack.subcategory.dao.SubcategoryDAOImpl;
 import com.wawa87.moneystack.transaction.service.TransactionService;
@@ -49,7 +49,7 @@ public class AppContext {
     UserService userService;
     BudgetService budgetService;
     CategoryService categoryService;
-    SubcategoryService subcategoryService;
+    SubcategoryServiceImpl subcategoryService;
     MonthService monthService;
     TransactionService transactionService;
 
@@ -74,7 +74,7 @@ public class AppContext {
         this.userService = new UserService(this.userDAO, this.argon2, this.authenticationService, this.authorizationService);
         this.budgetService = new BudgetService(this.budgetDAO);
         this.categoryService = new CategoryService(this.categoryDAO, this.authorizationService);
-        this.subcategoryService = new SubcategoryService(this.subcategoryDAO);
+        this.subcategoryService = new SubcategoryServiceImpl(this.subcategoryDAO);
         this.monthService = new MonthService(this.monthDAO);
         this.transactionService = new TransactionService(this.transactionDAO, this.categoryService, this.subcategoryService);
     }
@@ -207,11 +207,11 @@ public class AppContext {
         this.categoryService = categoryService;
     }
 
-    public SubcategoryService getSubcategoryService() {
+    public SubcategoryServiceImpl getSubcategoryService() {
         return subcategoryService;
     }
 
-    public void setSubcategoryService(SubcategoryService subcategoryService) {
+    public void setSubcategoryService(SubcategoryServiceImpl subcategoryService) {
         this.subcategoryService = subcategoryService;
     }
 
