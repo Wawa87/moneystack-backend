@@ -203,20 +203,16 @@ Servlet for validating a username for availability and format.
 
 ### POST /validateNewUsername
 Validate the provided new username for availability.
-
-Payload:
-
+#### Request:
 `
 {
     "username": <username>
 }
 `
 
-Response:
-
+#### Response:
 `
 {
-    "result": <true/false>,
     "message": <message>
 }
 `
@@ -227,32 +223,84 @@ Servlet for Category CRUD operations.
 ### GET /categories
 Get the categories for the current User.
 
+#### Response:
+`
+[
+    {
+        "id": 66,
+        "userId": 276,
+        "name": "Investments",
+        "description": "All investment allocations."
+    },
+    {
+        "id": 67,
+        "userId": 276,
+        "name": "Housing",
+        "description": "All housing expenses."
+    }
+]
+`
+
 ### GET /categories/{id}
 Get the specific category for the current User.
+
+#### Response:
+`
+{
+    "id": 66,
+    "userId": 276,
+    "name": "Investments",
+    "description": "All investment allocations."
+}
+`
 
 ### POST /categories
 Create a new Category.
 
-Payload:
-
+#### Request:
 `
 {
-    "name": <name>,
-    "description": <description>
+    "name": "Investments",
+    "description": "All investment allocations."
+}
+`
+
+#### Response:
+`
+{
+    "id": 66,
+    "userId": 276,
+    "name": "Investments",
+    "description": "All investment allocations."
 }
 `
 
 ### PUT /categories/{id}
 Update the category.
 
-Payload:
-
+#### Request:
 `
 {
-    "name": <name>,
-    "description": <description>
+    "name": "Investments",
+    "description": "My investment allocations."
+}
+`
+
+#### Response:
+`
+{
+    "id": 66,
+    "userId": 276,
+    "name": "Investments",
+    "description": "My investment allocations."
 }
 `
 
 ### DELETE /categories/{id}
 Delete the category.
+#### Response:
+`
+{
+    "message": "Category deleted."
+}
+`
