@@ -5,6 +5,7 @@ import com.wawa87.moneystack.category.dao.CategoryDAO;
 import com.wawa87.moneystack.category.model.Category;
 import com.wawa87.moneystack.month.dao.MonthDAO;
 import com.wawa87.moneystack.subcategory.dao.SubcategoryDAO;
+import com.wawa87.moneystack.subcategory.model.Subcategory;
 import com.wawa87.moneystack.transaction.dao.TransactionDAO;
 import com.wawa87.moneystack.user.dao.UserDAO;
 import com.wawa87.moneystack.user.model.User;
@@ -50,7 +51,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             if (userOpt.isPresent()) {
                 User requestedUser = userOpt.get();
 
-                if (requester.getId() == requestedUser.getId()) return true;
+                return requester.getId() == requestedUser.getId();
             }
         }
 
@@ -59,6 +60,13 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     @Override
     public boolean authorizeForCategory(Long requesterId, Long objectId) {
+        if (this.isAdminRole(requesterId)) return true; // Allow admin.
+        Optional<Category> categoryOpt = categoryDAO.findById(objectId);
+        if (categoryOpt.isPresent()) {
+            Category category = categoryOpt.get();
+
+            return category.getUserId() == requesterId;
+        }
         return false;
     }
 
@@ -70,6 +78,18 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     @Override
     public boolean authorizeForSubcategory(Long requesterId, Long subcategoryId) {
+        if (this.isAdminRole(requesterId)) return true; // Allow admin.
+        Optional<Subcategory> subcategoryOpt = subcategoryDAO.findById(subcategoryId);
+        if (subcategoryOpt.isPresent()) {
+            Subcategory subcategory = subcategoryOpt.get();
+
+            Optional<Category> categoryOpt = categoryDAO.findById(subcategory.getCategoryId());
+            if (categoryOpt.isPresent()) {
+                Category category = categoryOpt.get();
+
+                return category.getUserId() == requesterId;
+            }
+        }
         return false;
     }
 

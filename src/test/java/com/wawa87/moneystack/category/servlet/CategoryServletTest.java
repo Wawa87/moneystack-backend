@@ -38,6 +38,18 @@ public class CategoryServletTest {
     @BeforeAll
     public static void prepareAll() throws BadRequestException, InvalidUsernameException {
         ctx = new AppContext();
+    }
+
+    @AfterAll
+    public static void cleanAll() {
+        UserDAO userDAO = ctx.getUserDAO();
+
+        userDAO.deleteById(userResponse0.getId());
+        userDAO.deleteById(userResponse1.getId());
+    }
+
+    @BeforeEach
+    public void prepareEach() throws BadRequestException, InvalidUsernameException {
         UserService userService = ctx.getUserService();
 
         User user = new User();
@@ -61,10 +73,9 @@ public class CategoryServletTest {
         userResponse1 = userService.register(UserRequest.convertUsertoRequest(user1));
     }
 
-    @AfterAll
-    public static void cleanAll() {
+    @AfterEach
+    public void cleanEach() {
         UserDAO userDAO = ctx.getUserDAO();
-
         userDAO.deleteById(userResponse0.getId());
         userDAO.deleteById(userResponse1.getId());
     }
@@ -110,7 +121,6 @@ public class CategoryServletTest {
     @Test
     public void testGetAll() throws IOException, InterruptedException {
         // Create multiple Categories to retrieve.
-        // Create Category.
         Category category0 = new Category();
         category0.setUserId(userResponse0.getId());
         category0.setName("Entertainment");

@@ -1,6 +1,6 @@
 package com.wawa87.moneystack.transaction.service;
 
-import com.wawa87.moneystack.category.service.CategoryService;
+import com.wawa87.moneystack.category.service.CategoryServiceImpl;
 import com.wawa87.moneystack.subcategory.service.SubcategoryServiceImpl;
 import com.wawa87.moneystack.transaction.dao.TransactionDAO;
 import com.wawa87.moneystack.transaction.dao.TransactionDTO;
@@ -15,10 +15,10 @@ public class TransactionService {
     private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
 
     private TransactionDAO transactionDAO;
-    private CategoryService categoryService;
+    private CategoryServiceImpl categoryService;
     private SubcategoryServiceImpl subcategoryService;
 
-    public TransactionService(TransactionDAO transactionDAO, CategoryService categoryService, SubcategoryServiceImpl subcategoryService) {
+    public TransactionService(TransactionDAO transactionDAO, CategoryServiceImpl categoryService, SubcategoryServiceImpl subcategoryService) {
         this.transactionDAO = transactionDAO;
         this.categoryService = categoryService;
         this.subcategoryService = subcategoryService;
@@ -26,17 +26,17 @@ public class TransactionService {
 
     public List<TransactionDTO> getTransactionDTOs(List<Transaction> transactions) {
         List<TransactionDTO> transactionDTOs = new ArrayList<>();
-        transactions.forEach((it) -> {
-            TransactionDTO transactionDTO = new TransactionDTO();
-            transactionDTO.setId(it.getId());
-            transactionDTO.setMonthId(it.getMonthId());
-            transactionDTO.setAmount(it.getAmount());
-            transactionDTO.setDescription(it.getDescription());
-            transactionDTO.setTimestamp(it.getTimestamp());
-            transactionDTO.setCategory(this.categoryService.findCategoryById(it.getCategoryId()).getName());
-            transactionDTO.setSubcategory(this.subcategoryService.getSubcategoryDTOById(it.getSubcategoryId()).getName());
-            transactionDTOs.add(transactionDTO);
-        });
+//        transactions.forEach((it) -> {
+//            TransactionDTO transactionDTO = new TransactionDTO();
+//            transactionDTO.setId(it.getId());
+//            transactionDTO.setMonthId(it.getMonthId());
+//            transactionDTO.setAmount(it.getAmount());
+//            transactionDTO.setDescription(it.getDescription());
+//            transactionDTO.setTimestamp(it.getTimestamp());
+//            transactionDTO.setCategory(this.categoryService.findCategoryById(it.getCategoryId()).getName());
+//            transactionDTO.setSubcategory(this.subcategoryService.getSubcategoryDTOById(it.getSubcategoryId()).getName());
+//            transactionDTOs.add(transactionDTO);
+//        });
         return transactionDTOs;
     }
 

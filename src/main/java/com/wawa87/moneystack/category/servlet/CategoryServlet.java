@@ -2,7 +2,7 @@ package com.wawa87.moneystack.category.servlet;
 
 import com.google.gson.JsonSyntaxException;
 import com.wawa87.moneystack.AppContext;
-import com.wawa87.moneystack.category.service.CategoryService;
+import com.wawa87.moneystack.category.service.CategoryServiceImpl;
 import com.wawa87.moneystack.category.model.Category;
 import com.wawa87.moneystack.common.db.ServletUtility;
 import com.wawa87.moneystack.common.exceptions.BadRequestException;
@@ -20,7 +20,7 @@ import java.util.List;
 public class CategoryServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(CategoryServlet.class);
     AppContext ctx;
-    CategoryService categoryService;
+    CategoryServiceImpl categoryService;
 
     public CategoryServlet(AppContext ctx) {
         this.ctx = ctx;
@@ -35,7 +35,7 @@ public class CategoryServlet extends HttpServlet {
 
         // Handle request: /categories
         if (pathInfo.length == 0) {
-            List<Category> categories = categoryService.getCategoriesByUserId(currentUserId);
+            List<Category> categories = categoryService.getAll(currentUserId);
             ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, categories);
             return;
         }
@@ -45,15 +45,14 @@ public class CategoryServlet extends HttpServlet {
             Long id = Long.valueOf(pathInfo[1]);
 
             try {
-                Category category = categoryService.findCategoryById(id, currentUserId);
-                if (category == null) category = new Category();
+                Category category = categoryService.findById(currentUserId, id);
                 ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, category);
-                return;
-            } catch (IllegalAccessException e) {
-                ServletUtility.sendUnauthorized(response);
                 return;
             } catch (NotFoundException e) {
                 ServletUtility.sendNotFoundException(response, e);
+                return;
+            } catch (ValidationException e) {
+                ServletUtility.sendValidationException(response, e);
                 return;
             }
         }
@@ -67,11 +66,10 @@ public class CategoryServlet extends HttpServlet {
         String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
         try {
-//            CategoryDTO categoryDTO = ServletUtility.gson.fromJson(request.getReader(), CategoryDTO.class);
             Category category = ServletUtility.gson.fromJson(request.getReader(), Category.class);
 
             // Save the category.
-            category = categoryService.saveCategory(currentUserId, category);
+            category = categoryService.save(currentUserId, category);
             ServletUtility.sendResponseObject(response, HttpServletResponse.SC_CREATED, category);
             return;
         } catch (BadRequestException e) {
@@ -103,7 +101,7 @@ public class CategoryServlet extends HttpServlet {
             Category category = ServletUtility.gson.fromJson(request.getReader(), Category.class);
 
             // Update the category.
-            category = categoryService.updateCategory(categoryId, currentUserId, category);
+            category = categoryService.update(currentUserId, categoryId, category);
             ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, category);
             return;
         } catch (JsonSyntaxException e) {
@@ -144,14 +142,11 @@ public class CategoryServlet extends HttpServlet {
             Long categoryId = Long.valueOf(pathInfo[1]);
 
             // Delete the category.
-            categoryService.deleteCategoryById(categoryId, currentUserId);
+            categoryService.delete(currentUserId, categoryId);
             ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Category deleted.");
             return;
         } catch (NumberFormatException e) {
             ServletUtility.sendBadRequest(response);
-            return;
-        } catch (NotFoundException e) {
-            ServletUtility.sendNotFoundException(response, e);
             return;
         } catch (ValidationException e) {
             ServletUtility.sendValidationException(response, e);

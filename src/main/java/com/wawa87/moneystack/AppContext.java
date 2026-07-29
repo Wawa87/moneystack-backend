@@ -9,7 +9,7 @@ import com.wawa87.moneystack.auth.util.JwtUtil;
 import com.wawa87.moneystack.budget.service.BudgetService;
 import com.wawa87.moneystack.budget.dao.BudgetDAO;
 import com.wawa87.moneystack.budget.dao.BudgetDAOImpl;
-import com.wawa87.moneystack.category.service.CategoryService;
+import com.wawa87.moneystack.category.service.CategoryServiceImpl;
 import com.wawa87.moneystack.category.dao.CategoryDAO;
 import com.wawa87.moneystack.category.dao.CategoryDAOImpl;
 import com.wawa87.moneystack.common.db.PGUtil;
@@ -48,7 +48,7 @@ public class AppContext {
     AuthorizationService authorizationService;
     UserService userService;
     BudgetService budgetService;
-    CategoryService categoryService;
+    CategoryServiceImpl categoryService;
     SubcategoryServiceImpl subcategoryService;
     MonthService monthService;
     TransactionService transactionService;
@@ -73,8 +73,8 @@ public class AppContext {
 
         this.userService = new UserService(this.userDAO, this.argon2, this.authenticationService, this.authorizationService);
         this.budgetService = new BudgetService(this.budgetDAO);
-        this.categoryService = new CategoryService(this.categoryDAO, this.authorizationService);
-        this.subcategoryService = new SubcategoryServiceImpl(this.subcategoryDAO);
+        this.categoryService = new CategoryServiceImpl(this.categoryDAO, this.authorizationService);
+        this.subcategoryService = new SubcategoryServiceImpl(this.subcategoryDAO, this.authorizationService);
         this.monthService = new MonthService(this.monthDAO);
         this.transactionService = new TransactionService(this.transactionDAO, this.categoryService, this.subcategoryService);
     }
@@ -199,11 +199,11 @@ public class AppContext {
         this.budgetService = budgetService;
     }
 
-    public CategoryService getCategoryService() {
+    public CategoryServiceImpl getCategoryService() {
         return categoryService;
     }
 
-    public void setCategoryService(CategoryService categoryService) {
+    public void setCategoryService(CategoryServiceImpl categoryService) {
         this.categoryService = categoryService;
     }
 
