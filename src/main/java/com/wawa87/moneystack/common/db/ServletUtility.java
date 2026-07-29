@@ -39,8 +39,6 @@ public class ServletUtility {
                 response.getWriter().write(gson.toJson(responseObject));
             } catch (IOException e) {
                 sendInternalError(response, e);
-//                sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
-//                throw new RuntimeException(e);
             }
         }
     }
@@ -56,6 +54,10 @@ public class ServletUtility {
 
     public static void sendBadRequest(HttpServletResponse response, ApiException e) {
         sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+    }
+
+    public static void sendAuthorizationException(HttpServletResponse response, ApiException e) {
+        sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
     }
 
     public static void sendUnauthorized(HttpServletResponse response) {

@@ -72,7 +72,7 @@ public class SubcategoryServiceImpl implements SubcategoryService {
         // Get the Subcategories.
         List<Subcategory> subcategories = subcategoryDAO.findByCategoryId(categoryId);
         if (subcategories.isEmpty()) throw new NotFoundException();
-        return subcategories;
+        else return subcategories;
     }
 
     @Override

@@ -98,6 +98,46 @@ public class BudgetDAOImpl implements BudgetDAO {
     }
 
     @Override
+    public List<Budget> findByUserId(Long userId) {
+        List<Budget> budgets = new ArrayList<>();
+        String sql = "SELECT * FROM " + TABLE + " WHERE " + F_USER_ID + "=?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                while (resultSet.next()) {
+                    Budget budget = mapRow(resultSet);
+                    budgets.add(budget);
+                }
+            }
+            return budgets;
+        } catch (SQLException e) {
+            logger.error("SQLException: " + e);
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Optional<Budget> findActiveByUserId(Long userId) {
+        String sql = "SELECT * FROM " + TABLE + " WHERE " + F_USER_ID +"=? AND " + F_ISACTIVE + "=true";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            try (ResultSet resultSet = stmt.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(mapRow(resultSet));
+                }
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            logger.error("SQLException: ", e);
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Override
     public int update(Budget budget) {
         String sql = "UPDATE " + TABLE + " SET "
             + F_USER_ID + "=?,"

@@ -1,9 +1,12 @@
 package com.wawa87.moneystack.auth.service;
 
 import com.wawa87.moneystack.budget.dao.BudgetDAO;
+import com.wawa87.moneystack.budget.model.Budget;
 import com.wawa87.moneystack.category.dao.CategoryDAO;
 import com.wawa87.moneystack.category.model.Category;
+import com.wawa87.moneystack.common.exceptions.NotFoundException;
 import com.wawa87.moneystack.month.dao.MonthDAO;
+import com.wawa87.moneystack.month.model.Month;
 import com.wawa87.moneystack.subcategory.dao.SubcategoryDAO;
 import com.wawa87.moneystack.subcategory.model.Subcategory;
 import com.wawa87.moneystack.transaction.dao.TransactionDAO;
@@ -94,13 +97,41 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     }
 
     @Override
-    public boolean authorizeForBudget(Long requesterId, Long budgetId) {
-        return false;
+    public boolean authorizeForBudget(Long requesterId, Long budgetId) throws NotFoundException {
+        // Authorize admin.
+        if (isAdminRole(requesterId)) return true;
+
+        // Get User to check.
+        Optional<User> userOpt = userDAO.findById(requesterId);
+        if (userOpt.isEmpty()) return false;
+
+        // Get Budget to check.
+        Optional<Budget> budgetOpt = budgetDAO.findById(budgetId);
+        if (budgetOpt.isEmpty()) throw new NotFoundException();
+
+        // Authorize User.
+        return budgetOpt.get().getUserId() == userOpt.get().getId();
     }
 
     @Override
-    public boolean authorizeForMonth(Long requesterId, Long monthId) {
-        return false;
+    public boolean authorizeForMonth(Long requesterId, Long monthId) throws NotFoundException {
+        // Authorize admin.
+        if (isAdminRole(requesterId)) return true;
+
+        // Get User to check.
+        Optional<User> userOpt = userDAO.findById(requesterId);
+        if (userOpt.isEmpty()) return false;
+
+        // Get Month to check.
+        Optional<Month> monthOpt = this.monthDAO.findById(monthId);
+        if (monthOpt.isEmpty()) throw new NotFoundException();
+
+        // Get Budget to check.
+        Optional<Budget> budgetOpt = budgetDAO.findById(monthOpt.get().getBudgetId());
+        if (budgetOpt.isEmpty()) throw new NotFoundException();
+
+        // Authorize User.
+        return budgetOpt.get().getUserId() == userOpt.get().getId();
     }
 
     @Override

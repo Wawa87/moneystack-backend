@@ -1,6 +1,7 @@
 package com.wawa87.moneystack;
 
 import com.wawa87.moneystack.auth.filter.AuthenticationFilter;
+import com.wawa87.moneystack.budget.servlet.BudgetServlet;
 import com.wawa87.moneystack.category.servlet.CategoryServlet;
 import com.wawa87.moneystack.subcategory.SubcategoryServlet;
 import com.wawa87.moneystack.user.servlet.UserServlet;
@@ -105,6 +106,9 @@ public class App {
 
         ServletHolder subcategoryServlet = new ServletHolder(new SubcategoryServlet(ctx));
         context.addServlet(subcategoryServlet, "/subcategories/*");
+
+        ServletHolder budgetServlet = new ServletHolder(new BudgetServlet(ctx));
+        context.addServlet(budgetServlet, "/budgets/*");
 
         server.start();
         server.join();

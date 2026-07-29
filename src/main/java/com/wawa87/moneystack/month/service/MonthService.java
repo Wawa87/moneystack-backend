@@ -1,39 +1,18 @@
 package com.wawa87.moneystack.month.service;
 
-import com.wawa87.moneystack.month.dao.MonthDAO;
+import com.wawa87.moneystack.common.exceptions.AuthorizationException;
+import com.wawa87.moneystack.common.exceptions.BadRequestException;
+import com.wawa87.moneystack.common.exceptions.NotFoundException;
+import com.wawa87.moneystack.common.exceptions.ValidationException;
 import com.wawa87.moneystack.month.model.Month;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.Comparator;
+import javax.naming.directory.AttributeInUseException;
 import java.util.List;
 
-public class MonthService {
-    private static final Logger logger = LoggerFactory.getLogger(MonthService.class);
-
-    private MonthDAO monthDAO;
-
-    public MonthService(MonthDAO monthDAO) {
-        this.monthDAO = monthDAO;
-    }
-
-    public List<Month> getMonthsByBudgetId(Long budgetId) {
-        List<Month> months = this.monthDAO.findByBudgetId(budgetId);
-//        months.sort(sortMonth);
-        return months;
-    }
-
-    public static List<Month> sortMonthsDesc(List<Month> months) {
-        months.sort(createMonthComparator().reversed());
-        return months;
-    }
-
-    private static Comparator<Month> createMonthComparator() {
-        return Comparator.comparing(Month::getYear)
-                .thenComparing(Month::getMonth);
-    }
-
-    public void saveMonth(Month month) {
-        monthDAO.save(month);
-    }
+public interface MonthService {
+    public Month save(Long requesterId, Month month) throws ValidationException, AuthorizationException, NotFoundException, BadRequestException;
+    public Month findById(Long requesterId, Long monthId) throws AuthorizationException, NotFoundException;
+    public List<Month> findByBudgetId(Long requesterId, Long budgetId) throws AuthorizationException, NotFoundException;
+    public Month update(Long requesterId, Long monthId, Month month) throws AttributeInUseException, NotFoundException, ValidationException, BadRequestException;
+    public void delete(Long requesterId, Long monthId) throws AuthorizationException, NotFoundException, BadRequestException;
 }

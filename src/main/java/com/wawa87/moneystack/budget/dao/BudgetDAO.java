@@ -12,6 +12,8 @@ public interface BudgetDAO {
     // Read
     Optional<Budget> findById(Long id);
     List<Budget> findByUsername(String username);
+    List<Budget> findByUserId(Long userId);
+    Optional<Budget> findActiveByUserId(Long userId);
 
     // Update
     int update(Budget budget);

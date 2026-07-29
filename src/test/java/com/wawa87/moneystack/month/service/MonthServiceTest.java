@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MonthServiceTest {
-    private MonthService monthService;
+    private MonthServiceImpl monthService;
 
     @Test
     public void testGetMonthsByBudgetId() {
@@ -39,7 +39,7 @@ public class MonthServiceTest {
         months.add(month2);
         months.add(month3);
 
-        months = MonthService.sortMonthsDesc(months);
+        months = MonthServiceImpl.sortMonthsDesc(months);
 
         Assertions.assertEquals(1, months.get(0).getId());
         Assertions.assertEquals(0, months.get(1).getId());
