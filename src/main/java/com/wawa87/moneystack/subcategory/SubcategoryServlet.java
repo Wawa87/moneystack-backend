@@ -74,7 +74,7 @@ public class SubcategoryServlet extends HttpServlet {
         Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
         String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
-        // Handle request: /categories
+        // Handle request: /subcategories
         // Create the Subcategory.
         try {
             Subcategory subcategory = ServletUtility.gson.fromJson(request.getReader(), Subcategory.class);

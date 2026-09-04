@@ -85,6 +85,7 @@ public class SubcategoryServiceImpl implements SubcategoryService {
         if (subcategoryOpt.isEmpty()) throw new NotFoundException();
 
         Subcategory subcategoryToUpdate = subcategoryOpt.get();
+        subcategoryToUpdate.setCategoryId(subcategory.getCategoryId());
         subcategoryToUpdate.setName(subcategory.getName());
         subcategoryToUpdate.setDescription(subcategory.getDescription());
 

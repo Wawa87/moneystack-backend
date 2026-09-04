@@ -304,3 +304,73 @@ Delete the category.
     "message": "Category deleted."
 }
 `
+
+## SubcategoryServlet
+Servlet for Subcategory CRUD operations.
+
+### GET /subcategories/{id}
+Get the specific subcategory for the current User.
+
+#### Response:
+`
+{
+    "id": 1,
+    "categoryId": 2,
+    "name": "Mortgage",
+    "description": "House payment"
+}
+`
+
+### POST /categories
+Create a new Subcategory.
+
+#### Request:
+`
+{
+    "categoryId": 3,
+    "name": "Utilities",
+    "description": "Trash and water to city"
+}
+`
+
+#### Response:
+`
+{
+    "id": 3,
+    "categoryId": 3,
+    "name": "Utilities",
+    "description": "Trash and water to city"
+}
+`
+
+### PUT /subcategories/{id}
+Update the subcategory.
+
+#### Request:
+`
+{
+    "categoryId": 3,
+    "name": "Mortgage",
+    "description": "Monthly house payment"
+}
+`
+
+#### Response:
+`
+{
+    "id": 1,
+    "categoryId": 3,
+    "name": "Mortgage",
+    "description": "Monthly house payment"
+}
+`
+
+### DELETE /subcategories/{id}
+Delete the subcategory.
+
+#### Response:
+`
+{
+    "message": "Subcategory deleted."
+}
+`
