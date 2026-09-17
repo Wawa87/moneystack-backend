@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class BudgetServiceImpl implements BudgetService {
     private static final Logger logger = LoggerFactory.getLogger(BudgetServiceImpl.class);
@@ -88,17 +89,24 @@ public class BudgetServiceImpl implements BudgetService {
         // Authorize admin.
         if (!authorizationService.authorizeForBudget(requesterId, budgetId)) throw new ValidationException();
 
-        // Get the Budget.
-        Optional<Budget> budgetOpt = budgetDAO.findById(budgetId);
-        if (budgetOpt.isEmpty()) throw new NotFoundException();
+        // Get the budgets for this user.
+        List<Budget> budgets = budgetDAO.findByUserId(requesterId);
 
-        // Update the Budget.
-        Budget budget = budgetOpt.get();
-        budget.setActive(true);
-        int result = budgetDAO.update(budget);
+        AtomicInteger result = new AtomicInteger(1);
 
-        // Return result
-        if (result != 1) throw new BadRequestException("Budget failed to update as Active.");
+        // Iterate through budgets. Set all to inactive except for the specified budget. (only 1 active at a time).
+        budgets.forEach((it) -> {
+            if (it.getId() == budgetId) it.setActive(true);
+            else it.setActive(false);
+
+            // Update the current budget.
+            int resultTemp = budgetDAO.update(it);
+
+            // Return result
+            if (resultTemp != 1) result.set(resultTemp);
+        });
+
+        if (result.get() != 1) throw new BadRequestException("Budget failed to update as Active.");
     }
 
     @Override

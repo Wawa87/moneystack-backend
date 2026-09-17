@@ -1,5 +1,15 @@
 # Servlet and Endpoint Reference Guide
 
+## Table of Contents
+1. [AuthenticationFilter](#authenticationfilter)
+2. [Authentication](#authenticationservlet)
+3. [Registration](#registrationservlet)
+4. [UserServlet](#userservlet)
+5. [UsernameValidation](#usernamevalidationservlet)
+6. [CategoryServlet](#categoryservlet)
+7. [SubcategoryServlet](#subcategoryservlet)
+8. [BudgetServlet](#budgetservlet)
+
 ## AuthenticationFilter
 Filters requests to check for the presence of the JWT cookie.
 
@@ -372,5 +382,157 @@ Delete the subcategory.
 `
 {
     "message": "Subcategory deleted."
+}
+`
+
+## BudgetServlet
+Servlet for User data.
+
+### GET /budgets
+Get the budgets for the current user.
+
+#### Response:
+`
+[
+    {
+        "id": 8,
+        "userId": 347,
+        "name": "Big Spender",
+        "isActive": false
+    }
+]
+`
+
+### GET /budgets/{id}
+Get the specific budget for the current User.
+
+#### Response:
+`
+{
+    "id": 8,
+    "userId": 347,
+    "name": "Big Spender",
+    "isActive": false
+}
+`
+
+### POST /budgets
+Create a new Budget.
+
+#### Request:
+`
+{
+    "userId": 347,
+    "name": "Big Spender"
+}
+`
+
+#### Response:
+`
+{
+    "id": 8,
+    "userId": 347,
+    "name": "Big Spender",
+    "isActive": false
+}
+`
+
+### PUT /budgets/{id}
+Update the budget.
+
+#### Request:
+`
+{
+    "userId": 347,
+    "name": "Big Saver"
+}
+`
+
+#### Response:
+`
+{
+    "id": 8,
+    "userId": 347,
+    "name": "Big Saver",
+    "isActive": false
+}
+`
+
+### PUT /budgets/{id}/setActive
+Set the Budget as active and set the others as inactive.
+
+#### Request:
+`
+`
+
+#### Response:
+`
+`
+
+### DELETE /budgets/{id}
+Delete the budget.
+
+#### Response:
+`
+{
+    "message": "Budget deleted."
+}
+`
+
+## MonthServlet
+Servlet for Month CRUD operations.
+
+### GET /months
+Get the months for the current User.
+
+#### Response:
+`
+[
+    {
+        "id": 66,
+        "userId": 276,
+        "name": "Investments",
+        "description": "All investment allocations."
+    },
+    {
+        "id": 67,
+        "userId": 276,
+        "name": "Housing",
+        "description": "All housing expenses."
+    }
+]
+`
+
+### GET /months/{id}
+Get the specific Month for the current User.
+
+#### Response:
+`
+{
+    "id": 66,
+    "userId": 276,
+    "name": "Investments",
+    "description": "All investment allocations."
+}
+`
+
+### POST /months
+Create a new Category.
+
+#### Request:
+`
+{
+    "name": "Investments",
+    "description": "All investment allocations."
+}
+`
+
+#### Response:
+`
+{
+    "id": 66,
+    "userId": 276,
+    "name": "Investments",
+    "description": "All investment allocations."
 }
 `

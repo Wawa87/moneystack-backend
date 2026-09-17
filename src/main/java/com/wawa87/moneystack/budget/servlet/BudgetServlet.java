@@ -92,43 +92,64 @@ public class BudgetServlet extends HttpServlet {
 
     @Override
     public void doPut(HttpServletRequest request, HttpServletResponse response) {
-        // Handle request: /budgets/{id}
         String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
         Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
         String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
-        if (pathInfo.length != 2) {
-            ServletUtility.sendBadRequest(response);
-            return;
+        // Handle request: /budgets/{id}
+        if (pathInfo.length == 2) {
+            try {
+                // Get the Budget Id from the request path.
+                Long budgetId = Long.valueOf(pathInfo[1]);
+
+                // Read payload into object.
+                Budget budget = ServletUtility.gson.fromJson(request.getReader(), Budget.class);
+
+                // Update the budget.
+                budget = budgetService.update(currentUserId, budgetId, budget);
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, budget);
+                return;
+            } catch (NotFoundException e) {
+                ServletUtility.sendNotFoundException(response, e);
+                return;
+            } catch (BadRequestException e) {
+                ServletUtility.sendBadRequest(response, e);
+                return;
+            } catch (IOException e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            } catch (AuthorizationException e) {
+                ServletUtility.sendAuthorizationException(response, e);
+                return;
+            } catch (Exception e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            }
         }
 
-        try {
-            // Get the Budget Id from the request path.
-            Long budgetId = Long.valueOf(pathInfo[1]);
+        // Handle request: /budgets/{id}/setActive
+        if (pathInfo.length == 3 && pathInfo[2].equals("setActive")) {
+            try {
+                // Get the Budget Id from the request path.
+                Long budgetId = Long.valueOf(pathInfo[1]);
 
-            // Read payload into object.
-            Budget budget = ServletUtility.gson.fromJson(request.getReader(), Budget.class);
-
-            // Update the budget.
-            budget = budgetService.update(currentUserId, budgetId, budget);
-            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, budget);
-            return;
-        } catch (NotFoundException e) {
-            ServletUtility.sendNotFoundException(response, e);
-            return;
-        } catch (BadRequestException e) {
-            ServletUtility.sendBadRequest(response, e);
-            return;
-        } catch (IOException e) {
-            ServletUtility.sendInternalError(response, e);
-            return;
-        } catch (AuthorizationException e) {
-            ServletUtility.sendAuthorizationException(response, e);
-            return;
-        } catch (Exception e) {
-            ServletUtility.sendInternalError(response, e);
-            return;
+                // Set the Budget as Active and the others as inactive.
+                budgetService.setActive(currentUserId, budgetId);
+                return;
+            } catch (NotFoundException e) {
+                ServletUtility.sendNotFoundException(response, e);
+                return;
+            } catch (BadRequestException e) {
+                ServletUtility.sendBadRequest(response, e);
+                return;
+            } catch (Exception e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            }
         }
+
+        ServletUtility.sendBadRequest(response);
+        return;
     }
 
     @Override
