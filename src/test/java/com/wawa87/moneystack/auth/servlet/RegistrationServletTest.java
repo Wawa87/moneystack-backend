@@ -1,7 +1,7 @@
 package com.wawa87.moneystack.auth.servlet;
 
 import com.wawa87.moneystack.AppContext;
-import com.wawa87.moneystack.common.db.ServletUtility;
+import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.user.dao.UserDAO;
 import com.wawa87.moneystack.user.model.UserRequest;
 import com.wawa87.moneystack.user.model.UserResponse;

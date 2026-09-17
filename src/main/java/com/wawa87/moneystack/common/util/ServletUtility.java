@@ -1,8 +1,7 @@
-package com.wawa87.moneystack.common.db;
+package com.wawa87.moneystack.common.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.wawa87.moneystack.common.util.LocalDateTimeAdapter;
 import com.wawa87.moneystack.common.exceptions.ApiException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -10,9 +9,16 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.Year;
 
 public class ServletUtility {
-    public static Gson gson = new GsonBuilder().serializeNulls().registerTypeAdapter(LocalDateTime .class, new LocalDateTimeAdapter()).create();
+    public static Gson gson = new GsonBuilder()
+            .serializeNulls()
+            .registerTypeAdapter(LocalDateTime .class, new LocalDateTimeAdapter())
+            .registerTypeAdapter(Month.class, new MonthAdapter())
+            .registerTypeAdapter(Year.class, new YearAdapter())
+            .create();
     private static final Logger logger = LoggerFactory.getLogger(ServletUtility.class);
 
     public static void sendResponse(HttpServletResponse response, int responseStatus, String message) {

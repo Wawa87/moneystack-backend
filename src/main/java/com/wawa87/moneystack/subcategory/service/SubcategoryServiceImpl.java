@@ -1,7 +1,7 @@
 package com.wawa87.moneystack.subcategory.service;
 
 import com.wawa87.moneystack.auth.service.AuthorizationService;
-import com.wawa87.moneystack.common.db.ServletUtility;
+import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.common.exceptions.BadRequestException;
 import com.wawa87.moneystack.common.exceptions.NotFoundException;
 import com.wawa87.moneystack.common.exceptions.ValidationException;

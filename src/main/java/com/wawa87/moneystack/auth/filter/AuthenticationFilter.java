@@ -3,7 +3,7 @@ package com.wawa87.moneystack.auth.filter;
 import com.auth0.jwt.interfaces.Claim;
 import com.wawa87.moneystack.AppContext;
 import com.wawa87.moneystack.auth.util.JwtUtil;
-import com.wawa87.moneystack.common.db.ServletUtility;
+import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.user.service.UserService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.Cookie;

@@ -6,7 +6,7 @@ import com.wawa87.moneystack.common.exceptions.BadRequestException;
 import com.wawa87.moneystack.common.exceptions.InvalidUsernameException;
 import com.wawa87.moneystack.common.exceptions.NotFoundException;
 import com.wawa87.moneystack.common.exceptions.ValidationException;
-import com.wawa87.moneystack.common.db.ServletUtility;
+import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.user.service.UserService;
 import com.wawa87.moneystack.user.model.User;
 import com.wawa87.moneystack.user.model.UserRequest;

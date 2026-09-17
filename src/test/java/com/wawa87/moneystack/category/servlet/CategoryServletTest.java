@@ -1,13 +1,11 @@
 package com.wawa87.moneystack.category.servlet;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.wawa87.moneystack.AppContext;
 import com.wawa87.moneystack.auth.model.AuthenticationRequest;
 import com.wawa87.moneystack.category.dao.CategoryDAO;
-import com.wawa87.moneystack.category.dao.CategoryDAOImpl;
 import com.wawa87.moneystack.category.model.Category;
-import com.wawa87.moneystack.common.db.ServletUtility;
+import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.common.exceptions.BadRequestException;
 import com.wawa87.moneystack.common.exceptions.InvalidUsernameException;
 import com.wawa87.moneystack.user.dao.UserDAO;
@@ -15,7 +13,6 @@ import com.wawa87.moneystack.user.model.User;
 import com.wawa87.moneystack.user.model.UserRequest;
 import com.wawa87.moneystack.user.model.UserResponse;
 import com.wawa87.moneystack.user.service.UserService;
-import org.checkerframework.checker.units.qual.C;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;
@@ -26,9 +23,8 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import static com.wawa87.moneystack.common.db.ServletUtility.gson;
+import static com.wawa87.moneystack.common.util.ServletUtility.gson;
 
 public class CategoryServletTest {
     private static AppContext ctx;

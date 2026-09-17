@@ -3,9 +3,7 @@ package com.wawa87.moneystack.budget.servlet;
 import com.wawa87.moneystack.AppContext;
 import com.wawa87.moneystack.budget.model.Budget;
 import com.wawa87.moneystack.budget.service.BudgetService;
-import com.wawa87.moneystack.category.model.Category;
-import com.wawa87.moneystack.category.servlet.CategoryServlet;
-import com.wawa87.moneystack.common.db.ServletUtility;
+import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.common.exceptions.AuthorizationException;
 import com.wawa87.moneystack.common.exceptions.BadRequestException;
 import com.wawa87.moneystack.common.exceptions.NotFoundException;
@@ -17,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.rmi.ServerError;
 import java.util.List;
 
 public class BudgetServlet extends HttpServlet {

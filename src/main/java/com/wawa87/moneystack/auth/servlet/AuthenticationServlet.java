@@ -6,7 +6,7 @@ import com.wawa87.moneystack.AppContext;
 import com.wawa87.moneystack.auth.service.AuthenticationService;
 import com.wawa87.moneystack.auth.util.JwtUtil;
 import com.wawa87.moneystack.auth.model.AuthenticationRequest;
-import com.wawa87.moneystack.common.db.ServletUtility;
+import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.common.exceptions.ValidationException;
 import com.wawa87.moneystack.user.service.UserService;
 import com.wawa87.moneystack.user.model.UserResponse;

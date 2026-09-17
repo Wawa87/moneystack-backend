@@ -4,7 +4,7 @@ import com.google.gson.JsonSyntaxException;
 import com.wawa87.moneystack.AppContext;
 import com.wawa87.moneystack.auth.model.UsernameValidationRequest;
 import com.wawa87.moneystack.auth.service.AuthenticationService;
-import com.wawa87.moneystack.common.db.ServletUtility;
+import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.common.exceptions.InvalidUsernameException;
 import com.wawa87.moneystack.user.service.UserService;
 import com.wawa87.moneystack.user.servlet.RegistrationServlet;

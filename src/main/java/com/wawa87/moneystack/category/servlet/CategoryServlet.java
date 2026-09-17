@@ -4,7 +4,7 @@ import com.google.gson.JsonSyntaxException;
 import com.wawa87.moneystack.AppContext;
 import com.wawa87.moneystack.category.service.CategoryServiceImpl;
 import com.wawa87.moneystack.category.model.Category;
-import com.wawa87.moneystack.common.db.ServletUtility;
+import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.common.exceptions.BadRequestException;
 import com.wawa87.moneystack.common.exceptions.NotFoundException;
 import com.wawa87.moneystack.common.exceptions.ValidationException;

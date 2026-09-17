@@ -482,57 +482,58 @@ Delete the budget.
 ## MonthServlet
 Servlet for Month CRUD operations.
 
-### GET /months
-Get the months for the current User.
-
-#### Response:
-`
-[
-    {
-        "id": 66,
-        "userId": 276,
-        "name": "Investments",
-        "description": "All investment allocations."
-    },
-    {
-        "id": 67,
-        "userId": 276,
-        "name": "Housing",
-        "description": "All housing expenses."
-    }
-]
-`
-
 ### GET /months/{id}
 Get the specific Month for the current User.
 
 #### Response:
 `
 {
-    "id": 66,
-    "userId": 276,
-    "name": "Investments",
-    "description": "All investment allocations."
+    "id": 7,
+    "budgetId": 10,
+    "year": 2026,
+    "month": "JANUARY"
 }
 `
 
-### POST /months
+### GET /months/ofBudget/{budgetId}
+Get the months for the current User.
+
+#### Response:
+`
+[
+    {
+        "id": 7,
+        "budgetId": 10,
+        "year": 2026,
+        "month": "JANUARY"
+    }
+]
+`
+
+### POST /months/forBudget/{id}
 Create a new Category.
 
 #### Request:
 `
 {
-    "name": "Investments",
-    "description": "All investment allocations."
+    "year": 2026,
+    "month": "APRIL"
+}
+`
+OR
+`
+{
+    "year": 2026,
+    "month": 4
 }
 `
 
 #### Response:
 `
 {
-    "id": 66,
-    "userId": 276,
-    "name": "Investments",
-    "description": "All investment allocations."
+    "id": 10,
+    "budgetId": 10,
+    "year": 2026,
+    "month": "APRIL"
 }
 `

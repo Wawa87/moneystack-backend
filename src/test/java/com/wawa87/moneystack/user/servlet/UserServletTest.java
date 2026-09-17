@@ -9,7 +9,7 @@ import com.wawa87.moneystack.budget.dao.BudgetDAOImpl;
 import com.wawa87.moneystack.category.dao.CategoryDAO;
 import com.wawa87.moneystack.category.dao.CategoryDAOImpl;
 import com.wawa87.moneystack.common.db.PGUtil;
-import com.wawa87.moneystack.common.db.ServletUtility;
+import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.month.dao.MonthDAO;
 import com.wawa87.moneystack.month.dao.MonthDAOImpl;
 import com.wawa87.moneystack.subcategory.dao.SubcategoryDAO;
