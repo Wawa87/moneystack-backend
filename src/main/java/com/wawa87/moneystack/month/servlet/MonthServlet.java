@@ -1,6 +1,7 @@
 package com.wawa87.moneystack.month.servlet;
 
 import com.wawa87.moneystack.AppContext;
+import com.wawa87.moneystack.common.exceptions.BadRequestException;
 import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.common.exceptions.AuthorizationException;
 import com.wawa87.moneystack.common.exceptions.NotFoundException;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.naming.directory.AttributeInUseException;
 import java.io.IOException;
 import java.util.List;
 
@@ -97,6 +99,77 @@ public class MonthServlet extends HttpServlet {
                 return;
             } catch (ValidationException e) {
                 ServletUtility.sendValidationException(response, e);
+                return;
+            } catch (Exception e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            }
+        }
+
+        ServletUtility.sendBadRequest(response);
+        return;
+    }
+
+    @Override
+    public void doPut(HttpServletRequest request, HttpServletResponse response) {
+        String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
+        Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
+        String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
+
+        // Handle request: /months/{id}
+        if (pathInfo.length == 2) {
+            try {
+                Long monthId = Long.parseLong(pathInfo[1]);
+                Month month = ServletUtility.gson.fromJson(request.getReader(), Month.class);
+                month = this.monthService.update(currentUserId, monthId, month);
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, month);
+                return;
+            } catch (IOException e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            } catch (ValidationException e) {
+                ServletUtility.sendValidationException(response, e);
+                return;
+            } catch (NotFoundException e) {
+                ServletUtility.sendNotFoundException(response, e);
+                return;
+            } catch (BadRequestException e) {
+                ServletUtility.sendBadRequest(response, e);
+                return;
+            } catch (AttributeInUseException e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            } catch (Exception e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            }
+        }
+
+        ServletUtility.sendBadRequest(response);
+        return;
+    }
+
+    @Override
+    public void doDelete(HttpServletRequest request, HttpServletResponse response) {
+        String[] pathInfo = request.getPathInfo() == null ? new String[0] : request.getPathInfo().split("/");
+        Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
+        String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
+
+        // Handle request: /months/{id}
+        if (pathInfo.length == 2) {
+            try {
+                Long monthId = Long.parseLong(pathInfo[1]);
+                this.monthService.delete(currentUserId, monthId);
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Month deleted.");
+                return;
+            } catch (AuthorizationException e) {
+                ServletUtility.sendAuthorizationException(response, e);
+                return;
+            } catch (NotFoundException e) {
+                ServletUtility.sendNotFoundException(response, e);
+                return;
+            } catch (BadRequestException e) {
+                ServletUtility.sendBadRequest(response, e);
                 return;
             } catch (Exception e) {
                 ServletUtility.sendInternalError(response, e);

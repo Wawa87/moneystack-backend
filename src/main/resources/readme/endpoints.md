@@ -537,3 +537,34 @@ OR
     "month": "APRIL"
 }
 `
+
+### PUT /months/{id}
+Update the month.
+
+#### Request:
+`
+{
+    "year": 2027,
+    "month": 11
+}
+`
+
+#### Response:
+`
+{
+    "id": 7,
+    "budgetId": 10,
+    "year": 2027,
+    "month": "NOVEMBER"
+}
+`
+
+### DELETE /months/{id}
+Delete the month.
+
+#### Response:
+`
+{
+    "message": "Month deleted."
+}
+`

@@ -88,7 +88,7 @@ public class MonthServiceImpl implements MonthService {
     @Override
     public Month update(Long requesterId, Long monthId, Month month) throws AttributeInUseException, NotFoundException, ValidationException, BadRequestException {
         // Validate Month values.
-        if (month.getBudgetId() == null) throw new ValidationException("Budget Id is invalid.");
+//        if (month.getBudgetId() == null) throw new ValidationException("Budget Id is invalid.");
         if (month.getMonth() == null) throw new ValidationException("Month value is invalid.");
         if (month.getYear() == null) throw new ValidationException("Year value is invalid.");
 
@@ -119,7 +119,7 @@ public class MonthServiceImpl implements MonthService {
         if (monthOpt.isEmpty()) throw new NotFoundException();
 
         // Delete the Month.
-        int result = this.monthDAO.deleteById(monthId);
+        int result = this.monthDAO.deleteById(monthOpt.get().getId());
         if (result == 0) throw new BadRequestException();
     }
 }
