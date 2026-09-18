@@ -5,6 +5,7 @@ import com.wawa87.moneystack.budget.servlet.BudgetServlet;
 import com.wawa87.moneystack.category.servlet.CategoryServlet;
 import com.wawa87.moneystack.month.servlet.MonthServlet;
 import com.wawa87.moneystack.subcategory.SubcategoryServlet;
+import com.wawa87.moneystack.transaction.servlet.TransactionServlet;
 import com.wawa87.moneystack.user.servlet.UserServlet;
 import com.wawa87.moneystack.auth.servlet.AuthenticationServlet;
 import com.wawa87.moneystack.user.servlet.RegistrationServlet;
@@ -113,6 +114,9 @@ public class App {
 
         ServletHolder monthServlet = new ServletHolder(new MonthServlet(ctx));
         context.addServlet(monthServlet, "/months/*");
+
+        ServletHolder transactionServlet = new ServletHolder(new TransactionServlet(ctx));
+        context.addServlet(transactionServlet, "/transactions/*");
 
         server.start();
         server.join();

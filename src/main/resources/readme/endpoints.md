@@ -331,7 +331,22 @@ Get the specific subcategory for the current User.
 }
 `
 
-### POST /categories
+### GET /subcategories/byCategory/{categoryId}
+Get the specific subcategory for the current User.
+
+#### Response:
+`
+[
+    {
+        "id": 1,
+        "categoryId": 2,
+        "name": "Mortgage",
+        "description": "House payment"
+    }
+]
+`
+
+### POST /subcategories
 Create a new Subcategory.
 
 #### Request:
@@ -443,7 +458,6 @@ Update the budget.
 #### Request:
 `
 {
-    "userId": 347,
     "name": "Big Saver"
 }
 `
@@ -495,7 +509,7 @@ Get the specific Month for the current User.
 }
 `
 
-### GET /months/ofBudget/{budgetId}
+### GET /months/byBudget/{budgetId}
 Get the months for the current User.
 
 #### Response:
@@ -510,12 +524,13 @@ Get the months for the current User.
 ]
 `
 
-### POST /months/forBudget/{id}
-Create a new Category.
+### POST /months
+Create a new Month.
 
 #### Request:
 `
 {
+    "budgetId": {budgetId},
     "year": 2026,
     "month": "APRIL"
 }
@@ -523,6 +538,7 @@ Create a new Category.
 OR
 `
 {
+    "budgetId": {budgetId},
     "year": 2026,
     "month": 4
 }
@@ -566,5 +582,118 @@ Delete the month.
 `
 {
     "message": "Month deleted."
+}
+`
+
+## TransactionServlet
+Servlet for Transaction CRUD operations.
+
+### GET /transactions/{id}
+Get the specific Transaction for the current User.
+
+#### Response:
+`
+{
+    "id": 18,
+    "monthId": 11,
+    "categoryId": 122,
+    "subcategoryId": 0,
+    "description": "Test transaction",
+    "amount": 100.00,
+    "timestamp": "2026-09-18T11:30"
+}
+`
+
+### GET /transactions/byMonth/{monthId}
+Get the transactions for the current User and Month.
+
+#### Response:
+`
+[
+    {
+        "id": 11,
+        "monthId": 11,
+        "categoryId": 0,
+        "subcategoryId": 0,
+        "description": "Test transaction",
+        "amount": 100.00,
+        "timestamp": "2026-09-18T11:20:35.592053"
+    }
+]
+`
+
+### POST /transactions
+Create a new Transaction.
+
+#### Request:
+`
+{
+    "monthId": {monthId},
+    "categoryId": null,
+    "subcategoryId": null,
+    "description": "Test transaction",
+    "amount": "100",
+    "timestamp": null
+}
+`
+OR
+`
+{
+    "monthId": {monthId},
+    "categoryId": null,
+    "subcategoryId": null,
+    "description": "Test transaction",
+    "amount": "100",
+    "timestamp": "2026-09-18T11:30:00"
+}
+`
+
+#### Response:
+`
+{
+    "id": 11,
+    "monthId": 11,
+    "categoryId": null,
+    "subcategoryId": null,
+    "description": "Test transaction",
+    "amount": 100,
+    "timestamp": "2026-09-18T11:20:35.592053"
+}
+`
+
+### PUT /transactions/{id}
+Update the transaction.
+
+#### Request:
+`
+{
+    "categoryId": null,
+    "subcategoryId": null,
+    "description": "Update2 Test transaction",
+    "amount": 47,
+    "timestamp": "2026-09-08T11:30"
+}
+`
+
+#### Response:
+`
+{
+    "id": 18,
+    "monthId": 11,
+    "categoryId": null,
+    "subcategoryId": null,
+    "description": "Update2 Test transaction",
+    "amount": 47,
+    "timestamp": "2026-09-08T11:30"
+}
+`
+
+### DELETE /transactions/{id}
+Delete the transaction.
+
+#### Response:
+`
+{
+    "message": "Transaction deleted."
 }
 `

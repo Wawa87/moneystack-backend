@@ -33,8 +33,8 @@ public class SubcategoryServlet extends HttpServlet {
         Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
         String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
-        // Handle request: /subcategories/byCategoryId/{id}
-        if (pathInfo.length == 3 && pathInfo[1].equals("byCategoryId")) {
+        // Handle request: /subcategories/byCategory/{id}
+        if (pathInfo.length == 3 && pathInfo[1].equals("byCategory")) {
             try {
                 Long categoryId = Long.valueOf(pathInfo[2]);
                 List<Subcategory> subcategories = subcategoryService.findByCategoryId(currentUserId, categoryId);
@@ -67,6 +67,9 @@ public class SubcategoryServlet extends HttpServlet {
                 return;
             }
         }
+
+        ServletUtility.sendBadRequest(response);
+        return;
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) {
@@ -101,28 +104,33 @@ public class SubcategoryServlet extends HttpServlet {
 
         // Handle request: /subcategories/{id}
         // Update the Subcategory.
-        try {
-            Long subcategoryId = Long.valueOf(pathInfo[1]);
-            Subcategory subcategoryUpdate = ServletUtility.gson.fromJson(request.getReader(), Subcategory.class);
-            subcategoryUpdate = subcategoryService.update(currentUserId, subcategoryId, subcategoryUpdate);
-            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, subcategoryUpdate);
-            return;
-        } catch (IOException e) {
-            ServletUtility.sendInternalError(response, e);
-            return;
-        } catch (ValidationException e) {
-            ServletUtility.sendValidationException(response, e);
-            return;
-        } catch (NotFoundException e) {
-            ServletUtility.sendNotFoundException(response, e);
-            return;
-        } catch (BadRequestException e) {
-            ServletUtility.sendBadRequest(response, e);
-            return;
-        } catch (Exception e) {
-            ServletUtility.sendInternalError(response, e);
-            return;
+        if (pathInfo.length == 2) {
+            try {
+                Long subcategoryId = Long.valueOf(pathInfo[1]);
+                Subcategory subcategoryUpdate = ServletUtility.gson.fromJson(request.getReader(), Subcategory.class);
+                subcategoryUpdate = subcategoryService.update(currentUserId, subcategoryId, subcategoryUpdate);
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, subcategoryUpdate);
+                return;
+            } catch (IOException e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            } catch (ValidationException e) {
+                ServletUtility.sendValidationException(response, e);
+                return;
+            } catch (NotFoundException e) {
+                ServletUtility.sendNotFoundException(response, e);
+                return;
+            } catch (BadRequestException e) {
+                ServletUtility.sendBadRequest(response, e);
+                return;
+            } catch (Exception e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            }
         }
+
+        ServletUtility.sendBadRequest(response);
+        return;
     }
 
     @Override
@@ -132,23 +140,28 @@ public class SubcategoryServlet extends HttpServlet {
         String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
         // Handle request: /subcategories/{id}
-        try {
-            Long subcategoryId = Long.valueOf(pathInfo[1]);
-            subcategoryService.delete(currentUserId, subcategoryId);
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Subcategory deleted.");
-            return;
-        } catch (ValidationException e) {
-            ServletUtility.sendValidationException(response, e);
-            return;
-        } catch (NotFoundException e) {
-            ServletUtility.sendNotFoundException(response, e);
-            return;
-        } catch (BadRequestException e) {
-            ServletUtility.sendBadRequest(response, e);
-            return;
-        } catch (Exception e) {
-            ServletUtility.sendInternalError(response, e);
-            return;
+        if (pathInfo.length == 2) {
+            try {
+                Long subcategoryId = Long.valueOf(pathInfo[1]);
+                subcategoryService.delete(currentUserId, subcategoryId);
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Subcategory deleted.");
+                return;
+            } catch (ValidationException e) {
+                ServletUtility.sendValidationException(response, e);
+                return;
+            } catch (NotFoundException e) {
+                ServletUtility.sendNotFoundException(response, e);
+                return;
+            } catch (BadRequestException e) {
+                ServletUtility.sendBadRequest(response, e);
+                return;
+            } catch (Exception e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            }
         }
+
+        ServletUtility.sendBadRequest(response);
+        return;
     }
 }

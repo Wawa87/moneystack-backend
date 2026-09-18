@@ -201,8 +201,10 @@ public class TransactionDAOImpl implements TransactionDAO {
         Transaction transaction = new Transaction();
         transaction.setId(resultSet.getLong(F_ID));
         transaction.setMonthId(resultSet.getLong(F_MONTH_ID));
-        transaction.setCategoryId(resultSet.getLong(F_CATEGORY_ID));
-        transaction.setSubcategoryId(resultSet.getLong(F_SUBCATEGORY_ID));
+        if (resultSet.getLong(F_CATEGORY_ID) == 0) transaction.setCategoryId(null);
+        else transaction.setCategoryId(resultSet.getLong(F_CATEGORY_ID));
+        if (resultSet.getLong(F_SUBCATEGORY_ID) == 0) transaction.setSubcategoryId(null);
+        else transaction.setSubcategoryId(resultSet.getLong(F_SUBCATEGORY_ID));
         transaction.setDescription(resultSet.getString(F_DESCRIPTION));
         transaction.setTimestamp(LocalDateTime.parse(resultSet.getString(F_TIMESTAMP), formatter));
         transaction.setAmount(resultSet.getBigDecimal(F_AMOUNT));

@@ -1,31 +1,31 @@
-package com.wawa87.moneystack.month.servlet;
+package com.wawa87.moneystack.transaction.servlet;
 
 import com.wawa87.moneystack.AppContext;
-import com.wawa87.moneystack.common.exceptions.BadRequestException;
-import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.common.exceptions.AuthorizationException;
+import com.wawa87.moneystack.common.exceptions.BadRequestException;
 import com.wawa87.moneystack.common.exceptions.NotFoundException;
-import com.wawa87.moneystack.common.exceptions.ValidationException;
-import com.wawa87.moneystack.month.model.Month;
-import com.wawa87.moneystack.month.service.MonthService;
+import com.wawa87.moneystack.common.util.ServletUtility;
+import com.wawa87.moneystack.transaction.model.Transaction;
+import com.wawa87.moneystack.transaction.service.TransactionService;
+import com.wawa87.moneystack.transaction.service.TransactionServiceImpl;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.directory.AttributeInUseException;
 import java.io.IOException;
+import java.net.http.HttpResponse;
 import java.util.List;
 
-public class MonthServlet extends HttpServlet {
-    private static final Logger logger = LoggerFactory.getLogger(MonthServlet.class);
+public class TransactionServlet extends HttpServlet {
+    private static final Logger logger = LoggerFactory.getLogger(TransactionServlet.class);
     AppContext ctx;
-    MonthService monthService;
+    TransactionService transactionService;
 
-    public MonthServlet(AppContext ctx) {
+    public TransactionServlet(AppContext ctx) {
         this.ctx = ctx;
-        this.monthService = ctx.getMonthService();
+        this.transactionService = ctx.getTransactionService();
     }
 
     @Override
@@ -34,12 +34,12 @@ public class MonthServlet extends HttpServlet {
         Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
         String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
-        // Handle request: /months/{id}
+        // Handle request: /transactions/{id}
         if (pathInfo.length == 2) {
             try {
-                Long monthId = Long.valueOf(pathInfo[1]);
-                Month month = this.monthService.findById(currentUserId, monthId);
-                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, month);
+                Long transactionId = Long.valueOf(pathInfo[1]);
+                Transaction transaction = transactionService.findById(currentUserId, transactionId);
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, transaction);
                 return;
             } catch (AuthorizationException e) {
                 ServletUtility.sendAuthorizationException(response, e);
@@ -47,15 +47,18 @@ public class MonthServlet extends HttpServlet {
             } catch (NotFoundException e) {
                 ServletUtility.sendNotFoundException(response, e);
                 return;
+            } catch (Exception e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
             }
         }
 
-        // Handle request: /months/byBudget/{id}
-        if (pathInfo.length == 3 && pathInfo[1].equals("byBudget")) {
+        // Handle request: /transactions/byMonth/{monthId}
+        if (pathInfo.length == 3 && pathInfo[1].equals("byMonth")) {
             try {
-                Long budgetId = Long.valueOf(pathInfo[2]);
-                List<Month> months = this.monthService.findByBudgetId(currentUserId, budgetId);
-                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, months);
+                Long monthId = Long.valueOf(pathInfo[2]);
+                List<Transaction> transactions = this.transactionService.getAllByMonth(currentUserId, monthId);
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, transactions);
                 return;
             } catch (AuthorizationException e) {
                 ServletUtility.sendAuthorizationException(response, e);
@@ -79,28 +82,33 @@ public class MonthServlet extends HttpServlet {
         Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
         String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
-        // Handle request: /months
-        try {
-            Month month = ServletUtility.gson.fromJson(request.getReader(), Month.class);
-            month = monthService.save(currentUserId, month);
-            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, month);
-            return;
-        } catch (AuthorizationException e) {
-            ServletUtility.sendAuthorizationException(response, e);
-            return;
-        } catch (NotFoundException e) {
-            ServletUtility.sendNotFoundException(response, e);
-            return;
-        } catch (IOException e) {
-            ServletUtility.sendInternalError(response, e);
-            return;
-        } catch (ValidationException e) {
-            ServletUtility.sendValidationException(response, e);
-            return;
-        } catch (Exception e) {
-            ServletUtility.sendInternalError(response, e);
-            return;
+        // Handle request: /transactions
+        if (pathInfo.length == 0) {
+            try {
+                Transaction transaction = ServletUtility.gson.fromJson(request.getReader(), Transaction.class);
+                transactionService.save(currentUserId, transaction);
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, transaction);
+                return;
+            } catch (IOException e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            } catch (AuthorizationException e) {
+                ServletUtility.sendAuthorizationException(response, e);
+                return;
+            } catch (BadRequestException e) {
+                ServletUtility.sendBadRequest(response, e);
+                return;
+            } catch (NotFoundException e) {
+                ServletUtility.sendNotFoundException(response, e);
+                return;
+            } catch (Exception e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            }
         }
+
+        ServletUtility.sendBadRequest(response);
+        return;
     }
 
     @Override
@@ -109,28 +117,25 @@ public class MonthServlet extends HttpServlet {
         Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
         String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
-        // Handle request: /months/{id}
+        // Handle request: /transactions/{id}
         if (pathInfo.length == 2) {
             try {
-                Long monthId = Long.parseLong(pathInfo[1]);
-                Month month = ServletUtility.gson.fromJson(request.getReader(), Month.class);
-                month = this.monthService.update(currentUserId, monthId, month);
-                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, month);
+                Long transactionId = Long.valueOf(pathInfo[1]);
+                Transaction transaction = ServletUtility.gson.fromJson(request.getReader(), Transaction.class);
+                transaction = this.transactionService.update(currentUserId, transactionId, transaction);
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, transaction);
                 return;
             } catch (IOException e) {
                 ServletUtility.sendInternalError(response, e);
                 return;
-            } catch (ValidationException e) {
-                ServletUtility.sendValidationException(response, e);
+            } catch (AuthorizationException e) {
+                ServletUtility.sendAuthorizationException(response, e);
                 return;
             } catch (NotFoundException e) {
                 ServletUtility.sendNotFoundException(response, e);
                 return;
             } catch (BadRequestException e) {
                 ServletUtility.sendBadRequest(response, e);
-                return;
-            } catch (AttributeInUseException e) {
-                ServletUtility.sendInternalError(response, e);
                 return;
             } catch (Exception e) {
                 ServletUtility.sendInternalError(response, e);
@@ -148,18 +153,15 @@ public class MonthServlet extends HttpServlet {
         Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
         String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
-        // Handle request: /months/{id}
+        // Handle request: /transactions/{id}
         if (pathInfo.length == 2) {
             try {
-                Long monthId = Long.parseLong(pathInfo[1]);
-                this.monthService.delete(currentUserId, monthId);
-                ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Month deleted.");
+                Long transactionId = Long.valueOf(pathInfo[1]);
+                this.transactionService.delete(currentUserId, transactionId);
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Transaction deleted.");
                 return;
             } catch (AuthorizationException e) {
                 ServletUtility.sendAuthorizationException(response, e);
-                return;
-            } catch (NotFoundException e) {
-                ServletUtility.sendNotFoundException(response, e);
                 return;
             } catch (BadRequestException e) {
                 ServletUtility.sendBadRequest(response, e);

@@ -19,7 +19,7 @@ import com.wawa87.moneystack.month.dao.MonthDAOImpl;
 import com.wawa87.moneystack.subcategory.service.SubcategoryServiceImpl;
 import com.wawa87.moneystack.subcategory.dao.SubcategoryDAO;
 import com.wawa87.moneystack.subcategory.dao.SubcategoryDAOImpl;
-import com.wawa87.moneystack.transaction.service.TransactionService;
+import com.wawa87.moneystack.transaction.service.TransactionServiceImpl;
 import com.wawa87.moneystack.transaction.dao.TransactionDAO;
 import com.wawa87.moneystack.transaction.dao.TransactionDAOImpl;
 import com.wawa87.moneystack.user.service.UserService;
@@ -51,7 +51,7 @@ public class AppContext {
     CategoryServiceImpl categoryService;
     SubcategoryServiceImpl subcategoryService;
     MonthServiceImpl monthService;
-    TransactionService transactionService;
+    TransactionServiceImpl transactionServiceImpl;
 
     public AppContext() {
         this.dataSource = PGUtil.getDataSource();
@@ -76,7 +76,7 @@ public class AppContext {
         this.categoryService = new CategoryServiceImpl(this.categoryDAO, this.authorizationService);
         this.subcategoryService = new SubcategoryServiceImpl(this.subcategoryDAO, this.authorizationService);
         this.monthService = new MonthServiceImpl(this.monthDAO, this.authorizationService);
-        this.transactionService = new TransactionService(this.transactionDAO, this.categoryService, this.subcategoryService);
+        this.transactionServiceImpl = new TransactionServiceImpl(this.transactionDAO, this.categoryService, this.subcategoryService, this.authorizationService);
     }
 
     public DataSource getDataSource() {
@@ -223,11 +223,11 @@ public class AppContext {
         this.monthService = monthService;
     }
 
-    public TransactionService getTransactionService() {
-        return transactionService;
+    public TransactionServiceImpl getTransactionService() {
+        return transactionServiceImpl;
     }
 
-    public void setTransactionService(TransactionService transactionService) {
-        this.transactionService = transactionService;
+    public void setTransactionService(TransactionServiceImpl transactionServiceImpl) {
+        this.transactionServiceImpl = transactionServiceImpl;
     }
 }

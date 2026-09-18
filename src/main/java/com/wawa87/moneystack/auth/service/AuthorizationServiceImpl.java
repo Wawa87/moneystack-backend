@@ -136,6 +136,15 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
     @Override
     public boolean authorizeForTransaction(Long requesterId, Long transactionId) {
+        // Authorize admin.
+        if (isAdminRole(requesterId)) return true;
+
+        // Get User to check.
+        Optional<User> userOpt = userDAO.findById(requesterId);
+        if (userOpt.isEmpty()) return false;
+
+        //
+
         return false;
     }
 
