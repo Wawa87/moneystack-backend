@@ -2,6 +2,7 @@ package com.wawa87.moneystack.user.servlet;
 
 import com.wawa87.moneystack.AppContext;
 import com.wawa87.moneystack.auth.service.AuthorizationService;
+import com.wawa87.moneystack.auth.util.JwtUtil;
 import com.wawa87.moneystack.common.exceptions.BadRequestException;
 import com.wawa87.moneystack.common.exceptions.InvalidUsernameException;
 import com.wawa87.moneystack.common.exceptions.NotFoundException;
@@ -26,11 +27,13 @@ public class UserServlet extends HttpServlet {
     AppContext ctx;
     AuthorizationService authorizationService;
     UserService userService;
+    JwtUtil jwtUtil;
 
     public UserServlet(AppContext ctx) {
         this.ctx = ctx;
         this.authorizationService = this.ctx.getAuthorizationService();
         this.userService = this.ctx.getUserService();
+        this.jwtUtil = this.ctx.getJwtUtil();
     }
 
     @Override
@@ -122,8 +125,12 @@ public class UserServlet extends HttpServlet {
             try {
                 PasswordUpdate passwordUpdate = ServletUtility.gson.fromJson(request.getReader(), PasswordUpdate.class);
                 this.userService.updatePassword(currentUsername, passwordUpdate);
-                ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Password updated successfully.");
 
+                String token = this.jwtUtil.generateExpiredToken(currentUserId , currentUsername);
+                String cookieStr = "access_token=" + token + "; SameSite=None; Secure; HttpOnly; Path=/;";
+                response.setHeader("Set-Cookie", cookieStr);
+
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Password updated successfully. Please login again.");
                 return;
             } catch (BadRequestException e) {
                 ServletUtility.sendBadRequest(response, e);

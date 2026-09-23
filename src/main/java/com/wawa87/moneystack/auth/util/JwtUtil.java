@@ -44,6 +44,20 @@ public class JwtUtil {
                 .sign(this.ALGORITHM);
     }
 
+    public String generateExpiredToken(Long userId, String username) {
+        Date now = new Date();
+        Date exp = new Date(now.getTime());
+
+        return JWT.create()
+                .withIssuer(this.ISSUER)
+                .withSubject(username)
+                .withIssuedAt(now)
+                .withExpiresAt(exp)
+                .withClaim("userId", userId.toString())
+                .withClaim("username", username)
+                .sign(this.ALGORITHM);
+    }
+
     public String validateAndGetSubject(String token) {
         try {
             DecodedJWT jwt = this.verifier.verify(token);
