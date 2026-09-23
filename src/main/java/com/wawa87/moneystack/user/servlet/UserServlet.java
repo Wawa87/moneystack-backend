@@ -7,6 +7,7 @@ import com.wawa87.moneystack.common.exceptions.InvalidUsernameException;
 import com.wawa87.moneystack.common.exceptions.NotFoundException;
 import com.wawa87.moneystack.common.exceptions.ValidationException;
 import com.wawa87.moneystack.common.util.ServletUtility;
+import com.wawa87.moneystack.user.model.PasswordUpdate;
 import com.wawa87.moneystack.user.service.UserService;
 import com.wawa87.moneystack.user.model.User;
 import com.wawa87.moneystack.user.model.UserRequest;
@@ -116,15 +117,25 @@ public class UserServlet extends HttpServlet {
         Long currentUserId = Long.parseLong(String.valueOf(request.getAttribute("currentUserId")));
         String currentUsername = String.valueOf(request.getAttribute("currentUsername"));
 
-        // Handle request: /user/{id}/updatePassword
+        // Handle request: /users/{id}/updatePassword
         if (pathInfo.length == 3 && pathInfo[2].equals("updatePassword")) {
             try {
-                // TODO: Implement password update workflow.
-                ServletUtility.sendResponse(response, HttpServletResponse.SC_NOT_IMPLEMENTED, "Not yet implemented.");
+                PasswordUpdate passwordUpdate = ServletUtility.gson.fromJson(request.getReader(), PasswordUpdate.class);
+                this.userService.updatePassword(currentUsername, passwordUpdate);
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Password updated successfully.");
+
+                return;
+            } catch (BadRequestException e) {
+                ServletUtility.sendBadRequest(response, e);
+                return;
+            } catch (IOException e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            } catch (ValidationException e) {
+                ServletUtility.sendValidationException(response, e);
                 return;
             } catch (Exception e) {
-                // TODO: Implement proper exception handling.
-                logger.error("Error: ", e);
+                ServletUtility.sendInternalError(response, e);
                 return;
             }
         }

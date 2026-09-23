@@ -10,6 +10,7 @@ import com.wawa87.moneystack.common.exceptions.InvalidUsernameException;
 import com.wawa87.moneystack.common.exceptions.NotFoundException;
 import com.wawa87.moneystack.common.exceptions.ValidationException;
 import com.wawa87.moneystack.user.dao.UserDAO;
+import com.wawa87.moneystack.user.model.PasswordUpdate;
 import com.wawa87.moneystack.user.model.UserRequest;
 import com.wawa87.moneystack.user.model.UserResponse;
 import com.wawa87.moneystack.user.model.User;
@@ -101,18 +102,22 @@ public class UserService {
         return UserResponse.convertUserToResponse(userOpt.get());
     }
 
-    public boolean changePassword(String username, String oldPassword, String newPassword) {
-        Optional<User> res = userDAO.findByUsername(username);
-        if (res.isPresent()) {
-            if (argon2.verify(res.get().getPassword(), oldPassword)) {
-                String updatePw = hashPw(newPassword);
-                User user = res.get();
-                user.setPassword(updatePw);
-                userDAO.update(user);
-                return true;
-            }
-        }
-        return false;
+    public boolean updatePassword(String currentUsername, PasswordUpdate passwordUpdate) throws BadRequestException, ValidationException {
+        // Get the User record where password will be updated.
+        Optional<User> res = userDAO.findByUsername(currentUsername);
+        if (res.isEmpty()) throw new BadRequestException("User not found.");
+
+        // Verify current password.
+        if (!this.argon2.verify(res.get().getPassword(), passwordUpdate.getCurrentPassword())) throw new ValidationException("Current password is incorrect.");
+
+        // Validate new password.
+        if (!passwordUpdate.getNewPassword().equals(passwordUpdate.getConfirmNewPassword())) throw new ValidationException("New passwords don't match.");
+        // TODO: Implement password requirements
+        res.get().setPassword(hashPw(passwordUpdate.getNewPassword()));
+
+        // Update the password.
+        this.userDAO.update(res.get());
+        return true;
     }
 
     public UserResponse findUserById(Long requesterId, Long requestedId) throws NotFoundException, ValidationException {
@@ -199,7 +204,7 @@ public class UserService {
     }
 
     private String hashPw(String password) {
-        return argon2.hash(22,  65536, 1, password);
+        return this.argon2.hash(22,  65536, 1, password);
     }
 
     // Validation methods.
