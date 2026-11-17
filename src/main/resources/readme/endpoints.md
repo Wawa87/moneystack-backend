@@ -133,8 +133,14 @@ Access: Admin only
 }
 `
 
-### PUT /user/{id}/updatePassword
-// TODO: Implement password change workflow.
+### POST /user/{id}/update-password
+`
+{
+    "currentPassword": "dev",
+    "newPassword": "dev0",
+    "confirmNewPassword": "dev0"
+}
+`
 
 ### PUT /user/{id}/updateEmails
 // TODO: Implement email update workflow.
@@ -183,7 +189,7 @@ Servlet for User registration.
 ## AuthenicationServlet
 Servlet for authentication. Sets the JWT cookie upon successful authentication.
 
-### POST /login
+### POST /auth/login
 #### Request:
 `
 {
@@ -205,6 +211,37 @@ Servlet for authentication. Sets the JWT cookie upon successful authentication.
     "phoneNumber": "+17602221111",
     "createdAt": "2026-07-16T15:58:07.482409",
     "updatedAt": null
+}
+`
+
+### POST /auth/forgot-password
+#### Request:
+`
+{
+    "email": "appdev@rd.com"
+}
+`
+
+#### Response:
+`
+{
+    "message": "Please check your email for a reset link.
+}
+`
+
+### POST /auth/reset-password/<hash>
+#### Request:
+`
+{
+    "newPassword": "dev0",
+    "confirmPassword": "dev0"
+}
+`
+
+#### Response:
+`
+{
+    "message": "Your password has been updated. Please login again."
 }
 `
 

@@ -1,6 +1,6 @@
 package com.wawa87.moneystack.user.model;
 
-public class PasswordUpdate {
+public class PasswordUpdateRequest {
     private String currentPassword;
     private String newPassword;
     private String confirmNewPassword;

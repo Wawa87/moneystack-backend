@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
@@ -34,7 +35,18 @@ public class AuthenticationFilter extends HttpFilter {
     @Override
     public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
         String servletPath = request.getServletPath();
-        if (servletPath.equals("/register") || servletPath.equals("/login") || servletPath.equals("/validateNewUsername")) {
+        String requestURI = request.getRequestURI();
+
+        ArrayList<String> authBypassPaths = new ArrayList<>();
+        authBypassPaths.add("/auth");
+//        authBypassPaths.add("/register");
+//        authBypassPaths.add("/login");
+//        authBypassPaths.add("/validateNewUsername");
+//        authBypassPaths.add("/validateNewUsername/");
+//        authBypassPaths.add("/forgot-password");
+//        authBypassPaths.add("/reset-password");
+
+        if (authBypassPaths.contains(servletPath)) {
             filterChain.doFilter(request, response);
             return;
         }

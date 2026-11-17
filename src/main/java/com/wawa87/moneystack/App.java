@@ -1,6 +1,7 @@
 package com.wawa87.moneystack;
 
 import com.wawa87.moneystack.auth.filter.AuthenticationFilter;
+import com.wawa87.moneystack.auth.filter.PreflightFilter;
 import com.wawa87.moneystack.budget.servlet.BudgetServlet;
 import com.wawa87.moneystack.category.servlet.CategoryServlet;
 import com.wawa87.moneystack.month.servlet.MonthServlet;
@@ -15,7 +16,9 @@ import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlet.ServletMapping;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 
 public class App {
@@ -77,12 +80,12 @@ public class App {
         context.setContextPath("/");
         server.setHandler(context);
 
-//        FilterHolder preflightFilter = new FilterHolder(new PreflightFilter());
-//        context.addFilter(
-//                preflightFilter,
-//                "/*",
-//                EnumSet.of(DispatcherType.REQUEST)
-//        );
+        FilterHolder preflightFilter = new FilterHolder(new PreflightFilter());
+        context.addFilter(
+                preflightFilter,
+                "/*",
+                EnumSet.of(DispatcherType.REQUEST)
+        );
 
         FilterHolder authenticationFilter = new FilterHolder(new AuthenticationFilter(ctx));
         context.addFilter(
@@ -92,7 +95,10 @@ public class App {
         );
 
         ServletHolder authenticationServlet = new ServletHolder(new AuthenticationServlet(ctx));
-        context.addServlet(authenticationServlet, "/login");
+        context.addServlet(authenticationServlet, "/auth/*");
+//        context.addServlet(authenticationServlet, "/login");
+//        context.addServlet(authenticationServlet, "/forgot-password");
+//        context.addServlet(authenticationServlet, "/reset-password/*");
 
         ServletHolder registrationServlet = new ServletHolder(new RegistrationServlet(ctx));
         context.addServlet(registrationServlet, "/register");
@@ -101,7 +107,7 @@ public class App {
         context.addServlet(profileServlet, "/users/*");
 
         ServletHolder usernameValidationServlet = new ServletHolder(new UsernameValidationServlet(ctx));
-        context.addServlet(usernameValidationServlet, "/validateNewUsername");
+        context.addServlet(usernameValidationServlet, "/validateNewUsername/*");
 
         ServletHolder categoryServlet = new ServletHolder(new CategoryServlet(ctx));
         context.addServlet(categoryServlet, "/categories/*");

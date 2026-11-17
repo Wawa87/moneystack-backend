@@ -5,15 +5,10 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import com.wawa87.moneystack.auth.service.AuthenticationService;
 import com.wawa87.moneystack.auth.service.AuthorizationService;
-import com.wawa87.moneystack.common.exceptions.BadRequestException;
-import com.wawa87.moneystack.common.exceptions.InvalidUsernameException;
-import com.wawa87.moneystack.common.exceptions.NotFoundException;
-import com.wawa87.moneystack.common.exceptions.ValidationException;
+import com.wawa87.moneystack.common.exceptions.*;
+import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.user.dao.UserDAO;
-import com.wawa87.moneystack.user.model.PasswordUpdate;
-import com.wawa87.moneystack.user.model.UserRequest;
-import com.wawa87.moneystack.user.model.UserResponse;
-import com.wawa87.moneystack.user.model.User;
+import com.wawa87.moneystack.user.model.*;
 import de.mkammerer.argon2.Argon2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,12 +24,17 @@ public class UserService {
     private Argon2 argon2;
     private AuthorizationService authorizationService;
     private AuthenticationService authenticationService;
+    private PasswordResetService passwordResetService;
 
-    public UserService(UserDAO userDAO, Argon2 argon2, AuthenticationService authenticationService, AuthorizationService authorizationService) {
+    public UserService(UserDAO userDAO, Argon2 argon2, AuthenticationService authenticationService, AuthorizationService authorizationService, PasswordResetService passwordResetService) {
         this.userDAO = userDAO;
         this.argon2 = argon2;
         this.authorizationService = authorizationService;
         this.authenticationService = authenticationService;
+    }
+
+    public void setPasswordResetService(PasswordResetService passwordResetService) {
+        this.passwordResetService = passwordResetService;
     }
 
     public UserResponse register(UserRequest userRequest) throws InvalidUsernameException, BadRequestException {
@@ -102,22 +102,21 @@ public class UserService {
         return UserResponse.convertUserToResponse(userOpt.get());
     }
 
-    public boolean updatePassword(String currentUsername, PasswordUpdate passwordUpdate) throws BadRequestException, ValidationException {
+    public void updatePassword(String currentUsername, PasswordUpdateRequest passwordUpdateRequest) throws BadRequestException, ValidationException {
         // Get the User record where password will be updated.
-        Optional<User> res = userDAO.findByUsername(currentUsername);
-        if (res.isEmpty()) throw new BadRequestException("User not found.");
+        Optional<User> userOpt = userDAO.findByUsername(currentUsername);
+        if (userOpt.isEmpty()) throw new BadRequestException("User not found.");
+        User user = userOpt.get();
 
         // Verify current password.
-        if (!this.argon2.verify(res.get().getPassword(), passwordUpdate.getCurrentPassword())) throw new ValidationException("Current password is incorrect.");
+        if (!this.argon2.verify(user.getPassword(), passwordUpdateRequest.getCurrentPassword())) throw new ValidationException("Current password is incorrect.");
 
         // Validate new password.
-        if (!passwordUpdate.getNewPassword().equals(passwordUpdate.getConfirmNewPassword())) throw new ValidationException("New passwords don't match.");
+        if (!passwordUpdateRequest.getNewPassword().equals(passwordUpdateRequest.getConfirmNewPassword())) throw new ValidationException("New passwords don't match.");
         // TODO: Implement password requirements
-        res.get().setPassword(hashPw(passwordUpdate.getNewPassword()));
 
         // Update the password.
-        this.userDAO.update(res.get());
-        return true;
+        this.setPassword(user, passwordUpdateRequest.getNewPassword());
     }
 
     public UserResponse findUserById(Long requesterId, Long requestedId) throws NotFoundException, ValidationException {
@@ -172,10 +171,6 @@ public class UserService {
         // Validate available username.
         this.authenticationService.validateNewUsername(updatedUser.getUsername());
 
-        // Hash the password.
-        String hash = hashPw(updatedUser.getPassword());
-        updatedUser.setPassword(hash);
-
         // Update User record.
         int result = userDAO.update(updatedUser); // Returns 1 for row updated. Returns 0 for error/no rows updated.
         if (result == 1) {
@@ -203,17 +198,24 @@ public class UserService {
         if (result != 1) throw new BadRequestException();
     }
 
+    /**
+     * Hashes the password string according to the Argon2 configuration.
+     * @param password
+     * @return
+     */
     private String hashPw(String password) {
         return this.argon2.hash(22,  65536, 1, password);
     }
 
-    // Validation methods.
-//    public boolean validateNewUsername(String username) throws InvalidUsernameException {
-//        if (username == null || username.isBlank()) throw new InvalidUsernameException("Username is blank."); // Check for null, empty, or whitespace.
-//        if (!username.matches("^[a-zA-Z0-9]+$")) throw new InvalidUsernameException("Username must be alphanumeric characters only."); // Check for alphanumeric characters only.
-//
-//        Optional<User> userOpt = userDAO.findByUsername(username.toLowerCase());
-//        if (userOpt.isPresent()) throw new InvalidUsernameException("Username is already taken."); // Check if username is already taken.
-//        return true;
-//    }
+    /**
+     * The method sets the given password without any validations for the provided User object.
+     * This final step when updating a password ensures proper hashing.
+     * @param user
+     * @param password
+     */
+    public void setPassword(User user, String password) {
+        String hashedPW = this.hashPw(password);
+        user.setPassword(hashedPW);
+        this.userDAO.update(user);
+    }
 }

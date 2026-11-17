@@ -22,6 +22,9 @@ import com.wawa87.moneystack.subcategory.dao.SubcategoryDAOImpl;
 import com.wawa87.moneystack.transaction.service.TransactionServiceImpl;
 import com.wawa87.moneystack.transaction.dao.TransactionDAO;
 import com.wawa87.moneystack.transaction.dao.TransactionDAOImpl;
+import com.wawa87.moneystack.user.dao.PasswordResetDAO;
+import com.wawa87.moneystack.user.dao.PasswordResetDAOImpl;
+import com.wawa87.moneystack.user.service.PasswordResetService;
 import com.wawa87.moneystack.user.service.UserService;
 import com.wawa87.moneystack.user.dao.UserDAO;
 import com.wawa87.moneystack.user.dao.UserDAOImpl;
@@ -43,8 +46,9 @@ public class AppContext {
     SubcategoryDAO subcategoryDAO;
     MonthDAO monthDAO;
     TransactionDAO transactionDAO;
+    PasswordResetDAO passwordResetDAO;
 
-    AuthenticationService authenticationService;
+    AuthenticationServiceImpl authenticationService;
     AuthorizationService authorizationService;
     UserService userService;
     BudgetServiceImpl budgetService;
@@ -52,6 +56,7 @@ public class AppContext {
     SubcategoryServiceImpl subcategoryService;
     MonthServiceImpl monthService;
     TransactionServiceImpl transactionServiceImpl;
+    PasswordResetService passwordResetService;
 
     public AppContext() {
         this.dataSource = PGUtil.getDataSource();
@@ -66,17 +71,22 @@ public class AppContext {
         this.subcategoryDAO = new SubcategoryDAOImpl(this.dataSource);
         this.monthDAO = new MonthDAOImpl(this.dataSource);
         this.transactionDAO = new TransactionDAOImpl(this.dataSource);
+        this.passwordResetDAO = new PasswordResetDAOImpl(this.dataSource);
 
         this.authenticationService = new AuthenticationServiceImpl(this.argon2, this.userDAO);
         this.authorizationService = new AuthorizationServiceImpl(
                 this.userDAO, this.categoryDAO, this.subcategoryDAO, this.budgetDAO, this.monthDAO, this.transactionDAO);
 
-        this.userService = new UserService(this.userDAO, this.argon2, this.authenticationService, this.authorizationService);
+        this.userService = new UserService(this.userDAO, this.argon2, this.authenticationService, this.authorizationService, this.passwordResetService);
         this.budgetService = new BudgetServiceImpl(this.budgetDAO, this.authorizationService);
         this.categoryService = new CategoryServiceImpl(this.categoryDAO, this.authorizationService);
         this.subcategoryService = new SubcategoryServiceImpl(this.subcategoryDAO, this.authorizationService);
         this.monthService = new MonthServiceImpl(this.monthDAO, this.authorizationService);
         this.transactionServiceImpl = new TransactionServiceImpl(this.transactionDAO, this.categoryService, this.subcategoryService, this.authorizationService);
+        this.passwordResetService = new PasswordResetService(this.passwordResetDAO);
+
+        this.authenticationService.setPasswordResetService(this.passwordResetService);
+        this.authenticationService.setUserService(this.userService);
     }
 
     public DataSource getDataSource() {
@@ -171,7 +181,7 @@ public class AppContext {
         return authenticationService;
     }
 
-    public void setAuthenticationService(AuthenticationService authenticationService) {
+    public void setAuthenticationService(AuthenticationServiceImpl authenticationService) {
         this.authenticationService = authenticationService;
     }
 
@@ -229,5 +239,13 @@ public class AppContext {
 
     public void setTransactionService(TransactionServiceImpl transactionServiceImpl) {
         this.transactionServiceImpl = transactionServiceImpl;
+    }
+
+    public PasswordResetService getPasswordResetService() {
+        return passwordResetService;
+    }
+
+    public void setPasswordResetService(PasswordResetService passwordResetService) {
+        this.passwordResetService = passwordResetService;
     }
 }

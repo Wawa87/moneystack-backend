@@ -3,6 +3,7 @@ package com.wawa87.moneystack.auth.servlet;
 import com.google.gson.JsonSyntaxException;
 import com.wawa87.moneystack.AppContext;
 import com.wawa87.moneystack.auth.model.UsernameValidationRequest;
+import com.wawa87.moneystack.auth.model.UsernameValidationResponse;
 import com.wawa87.moneystack.auth.service.AuthenticationService;
 import com.wawa87.moneystack.common.util.ServletUtility;
 import com.wawa87.moneystack.common.exceptions.InvalidUsernameException;
@@ -31,8 +32,9 @@ public class UsernameValidationServlet extends HttpServlet {
         // Handle request: /validateNewUsername
         try {
             UsernameValidationRequest usernameValidationRequest = ServletUtility.gson.fromJson(request.getReader(), UsernameValidationRequest.class);
-            this.authenticationService.validateNewUsername(usernameValidationRequest.getUsername());
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Username is available.");
+            UsernameValidationResponse usernameValidationResponse = new UsernameValidationResponse();
+            usernameValidationResponse.setResult(this.authenticationService.validateNewUsername(usernameValidationRequest.getUsername()));
+            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, usernameValidationResponse);
         } catch (InvalidUsernameException e) {
             ServletUtility.sendInvalidUsernameException(response, e);
             return;

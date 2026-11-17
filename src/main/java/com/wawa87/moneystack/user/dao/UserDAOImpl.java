@@ -117,6 +117,27 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
+    public List<User> findByEmail(String email) {
+        String sql = "SELECT * FROM " + TABLE + " WHERE " + F_EMAILS + " LIKE ?";
+
+        List<User> users = new ArrayList<>();
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, "%" + email + "%");
+            try (ResultSet rs  = stmt.executeQuery()) {
+                while (rs.next()) {
+                    users.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("SQLException: ", e);
+            throw new RuntimeException(e.getMessage());
+        }
+        return users;
+    }
+
+    @Override
     public List<User> findAll() {
         String sql = "SELECT * FROM " + TABLE;
 
@@ -174,7 +195,7 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public int deleteById(Long id) {
-        String sql = "DELETE FROM " + TABLE + " WHERE " + F_ID + "= ?";
+        String sql = "DELETE FROM " + TABLE + " WHERE " + F_ID + "=?";
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -188,7 +209,7 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public int delete(User user) {
-        String sql = "DELETE FROM " + TABLE + " WHERE " + F_ID + "= ?";
+        String sql = "DELETE FROM " + TABLE + " WHERE " + F_ID + "=?";
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql)) {

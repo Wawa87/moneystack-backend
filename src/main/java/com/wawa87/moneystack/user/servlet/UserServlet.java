@@ -8,11 +8,9 @@ import com.wawa87.moneystack.common.exceptions.InvalidUsernameException;
 import com.wawa87.moneystack.common.exceptions.NotFoundException;
 import com.wawa87.moneystack.common.exceptions.ValidationException;
 import com.wawa87.moneystack.common.util.ServletUtility;
-import com.wawa87.moneystack.user.model.PasswordUpdate;
+import com.wawa87.moneystack.user.model.*;
+import com.wawa87.moneystack.user.service.PasswordResetService;
 import com.wawa87.moneystack.user.service.UserService;
-import com.wawa87.moneystack.user.model.User;
-import com.wawa87.moneystack.user.model.UserRequest;
-import com.wawa87.moneystack.user.model.UserResponse;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,12 +25,15 @@ public class UserServlet extends HttpServlet {
     AppContext ctx;
     AuthorizationService authorizationService;
     UserService userService;
+    PasswordResetService passwordResetService;
     JwtUtil jwtUtil;
 
     public UserServlet(AppContext ctx) {
         this.ctx = ctx;
         this.authorizationService = this.ctx.getAuthorizationService();
         this.userService = this.ctx.getUserService();
+        this.passwordResetService = this.ctx.getPasswordResetService();
+
         this.jwtUtil = this.ctx.getJwtUtil();
     }
 
@@ -83,7 +84,6 @@ public class UserServlet extends HttpServlet {
         }
 
         ServletUtility.sendBadRequest(response);
-        return;
     }
 
     @Override
@@ -94,24 +94,47 @@ public class UserServlet extends HttpServlet {
 
         // Handle request: /users
         // Create the User.
-        try {
-            UserRequest userRequest = ServletUtility.gson.fromJson(request.getReader(), UserRequest.class); // Read the payload into UserRequest object.
-            UserResponse userResponse = this.userService.saveNewUser(userRequest, currentUsername);
-            ServletUtility.sendResponseObject(response, HttpServletResponse.SC_CREATED, userResponse);
-            return;
-        } catch (ValidationException e) {
-            ServletUtility.sendValidationException(response, e);
-            return;
-        } catch (InvalidUsernameException e) {
-            ServletUtility.sendInvalidUsernameException(response, e);
-            return;
-        } catch (BadRequestException e) {
-            ServletUtility.sendBadRequest(response, e);
-            return;
-        } catch (Exception e) {
-            ServletUtility.sendInternalError(response, e);
-            return;
+        if (pathInfo.length == 0) {
+            try {
+                UserRequest userRequest = ServletUtility.gson.fromJson(request.getReader(), UserRequest.class); // Read the payload into UserRequest object.
+                UserResponse userResponse = this.userService.saveNewUser(userRequest, currentUsername);
+                ServletUtility.sendResponseObject(response, HttpServletResponse.SC_CREATED, userResponse);
+                return;
+            } catch (ValidationException e) {
+                ServletUtility.sendValidationException(response, e);
+                return;
+            } catch (InvalidUsernameException e) {
+                ServletUtility.sendInvalidUsernameException(response, e);
+                return;
+            } catch (BadRequestException e) {
+                ServletUtility.sendBadRequest(response, e);
+                return;
+            } catch (Exception e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            }
         }
+
+        // Handle request: /users/update-password
+        if (pathInfo.length == 2 && pathInfo[1].equals("update-password")) {
+            try {
+                PasswordUpdateRequest pwUpdate = ServletUtility.gson.fromJson(request.getReader(), PasswordUpdateRequest.class);
+                this.userService.updatePassword(currentUsername, pwUpdate);
+                ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Your password has been updated.");
+                return;
+            } catch (IOException e) {
+                ServletUtility.sendInternalError(response, e);
+                return;
+            } catch (ValidationException e) {
+                ServletUtility.sendValidationException(response, e);
+                return;
+            } catch (BadRequestException e) {
+                ServletUtility.sendBadRequest(response);
+                return;
+            }
+        }
+
+        ServletUtility.sendBadRequest(response);
     }
 
     @Override
@@ -123,8 +146,8 @@ public class UserServlet extends HttpServlet {
         // Handle request: /users/{id}/updatePassword
         if (pathInfo.length == 3 && pathInfo[2].equals("updatePassword")) {
             try {
-                PasswordUpdate passwordUpdate = ServletUtility.gson.fromJson(request.getReader(), PasswordUpdate.class);
-                this.userService.updatePassword(currentUsername, passwordUpdate);
+                PasswordUpdateRequest passwordUpdateRequest = ServletUtility.gson.fromJson(request.getReader(), PasswordUpdateRequest.class);
+                this.userService.updatePassword(currentUsername, passwordUpdateRequest);
 
                 String token = this.jwtUtil.generateExpiredToken(currentUserId , currentUsername);
                 String cookieStr = "access_token=" + token + "; SameSite=None; Secure; HttpOnly; Path=/;";
@@ -205,7 +228,6 @@ public class UserServlet extends HttpServlet {
         }
 
         ServletUtility.sendBadRequest(response);
-        return;
     }
 
     @Override
