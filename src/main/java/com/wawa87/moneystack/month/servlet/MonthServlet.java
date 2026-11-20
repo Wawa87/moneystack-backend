@@ -47,6 +47,8 @@ public class MonthServlet extends HttpServlet {
             } catch (NotFoundException e) {
                 ServletUtility.sendNotFoundException(response, e);
                 return;
+            } catch (Exception e) {
+                ServletUtility.sendInternalError(response, e);
             }
         }
 
@@ -139,7 +141,6 @@ public class MonthServlet extends HttpServlet {
         }
 
         ServletUtility.sendBadRequest(response);
-        return;
     }
 
     @Override
@@ -171,6 +172,5 @@ public class MonthServlet extends HttpServlet {
         }
 
         ServletUtility.sendBadRequest(response);
-        return;
     }
 }

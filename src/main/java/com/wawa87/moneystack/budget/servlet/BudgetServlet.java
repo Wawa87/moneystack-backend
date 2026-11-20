@@ -170,7 +170,7 @@ public class BudgetServlet extends HttpServlet {
             ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Budget deleted.");
             return;
         } catch (NumberFormatException e) {
-            ServletUtility.sendBadRequest(response);
+            ServletUtility.sendInternalError(response, e);
             return;
         } catch (AuthorizationException e) {
             ServletUtility.sendAuthorizationException(response, e);

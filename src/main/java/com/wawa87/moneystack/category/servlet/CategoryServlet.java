@@ -54,6 +54,8 @@ public class CategoryServlet extends HttpServlet {
             } catch (ValidationException e) {
                 ServletUtility.sendValidationException(response, e);
                 return;
+            } catch (Exception e) {
+                ServletUtility.sendInternalError(response, e);
             }
         }
     }
@@ -105,10 +107,10 @@ public class CategoryServlet extends HttpServlet {
             ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, category);
             return;
         } catch (JsonSyntaxException e) {
-            ServletUtility.sendBadRequest(response);
+            ServletUtility.sendInternalError(response, e);
             return;
         } catch (NumberFormatException e) {
-            ServletUtility.sendBadRequest(response);
+            ServletUtility.sendInternalError(response, e);
             return;
         } catch (NotFoundException e) {
             ServletUtility.sendNotFoundException(response, e);
@@ -146,7 +148,7 @@ public class CategoryServlet extends HttpServlet {
             ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Category deleted.");
             return;
         } catch (NumberFormatException e) {
-            ServletUtility.sendBadRequest(response);
+            ServletUtility.sendInternalError(response, e);
             return;
         } catch (ValidationException e) {
             ServletUtility.sendValidationException(response, e);

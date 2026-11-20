@@ -13,14 +13,20 @@ import java.time.Month;
 import java.time.Year;
 
 public class ServletUtility {
+    private static final Logger logger = LoggerFactory.getLogger(ServletUtility.class);
     public static Gson gson = new GsonBuilder()
             .serializeNulls()
             .registerTypeAdapter(LocalDateTime .class, new LocalDateTimeAdapter())
             .registerTypeAdapter(Month.class, new MonthAdapter())
             .registerTypeAdapter(Year.class, new YearAdapter())
             .create();
-    private static final Logger logger = LoggerFactory.getLogger(ServletUtility.class);
 
+    /**
+     * Send the HTTP response with an associated JSON message.
+     * @param response
+     * @param responseStatus
+     * @param message
+     */
     public static void sendResponse(HttpServletResponse response, int responseStatus, String message) {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -30,12 +36,17 @@ public class ServletUtility {
                 response.getWriter().write("{\"message\": \"" + message + "\"}");
             } catch (IOException e) {
                 sendInternalError(response, e);
-//                sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
-                throw new RuntimeException(e);
             }
         }
     }
 
+    /**
+     * Send the HTTP response with an associated JSON object.
+     * @param response
+     * @param responseStatus
+     * @param responseObject
+     * @param <T>
+     */
     public static <T> void sendResponseObject(HttpServletResponse response, int responseStatus, Object responseObject) {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -49,8 +60,12 @@ public class ServletUtility {
         }
     }
 
+    /**
+     * Send generic HTTP response with generic internal server error message.
+     * @param response
+     * @param e
+     */
     public static void sendInternalError(HttpServletResponse response, Exception e) {
-        logger.error("Error: " + e);
         sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
     }
 
@@ -62,23 +77,43 @@ public class ServletUtility {
         sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
     }
 
-    public static void sendAuthorizationException(HttpServletResponse response, ApiException e) {
-        sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+    public static void sendBadRequest(HttpServletResponse response, ApiException e, String message) {
+        sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, message);
     }
 
-    public static void sendUnauthorized(HttpServletResponse response) {
+    public static void sendAuthorizationException(HttpServletResponse response) {
         sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized.");
     }
 
-    public static void sendInvalidUsernameException(HttpServletResponse response, ApiException e) {
-        sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+    public static void sendAuthorizationException(HttpServletResponse response, ApiException e) {
+        sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+    }
+
+    public static void sendAuthorizationException(HttpServletResponse response, ApiException e, String message) {
+        sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, message);
+    }
+
+    public static void sendValidationException(HttpServletResponse response) {
+        sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Validation exception.");
     }
 
     public static void sendValidationException(HttpServletResponse response, ApiException e) {
         sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
     }
 
+    public static void sendValidationException(HttpServletResponse response, ApiException e, String message) {
+        sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, message);
+    }
+
+    public static void sendNotFoundException(HttpServletResponse response) {
+        sendResponse(response, HttpServletResponse.SC_NOT_FOUND, "Not found.");
+    }
+
     public static void sendNotFoundException(HttpServletResponse response, ApiException e) {
         sendResponse(response, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+    }
+
+    public static void sendNotFoundException(HttpServletResponse response, ApiException e, String message) {
+        sendResponse(response, HttpServletResponse.SC_NOT_FOUND, message);
     }
 }

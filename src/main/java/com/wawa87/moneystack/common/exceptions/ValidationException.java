@@ -2,7 +2,7 @@ package com.wawa87.moneystack.common.exceptions;
 
 public class ValidationException extends ApiException {
     public ValidationException() {
-        super("Unauthorized.");
+        super("Invalid.");
     }
 
     public ValidationException(String message) {

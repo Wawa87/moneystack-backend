@@ -69,7 +69,6 @@ public class SubcategoryServlet extends HttpServlet {
         }
 
         ServletUtility.sendBadRequest(response);
-        return;
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) {
@@ -130,7 +129,6 @@ public class SubcategoryServlet extends HttpServlet {
         }
 
         ServletUtility.sendBadRequest(response);
-        return;
     }
 
     @Override
@@ -162,6 +160,5 @@ public class SubcategoryServlet extends HttpServlet {
         }
 
         ServletUtility.sendBadRequest(response);
-        return;
     }
 }

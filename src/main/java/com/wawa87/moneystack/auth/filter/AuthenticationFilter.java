@@ -60,14 +60,14 @@ public class AuthenticationFilter extends HttpFilter {
 
             // Return bad request if cookie is missing.
             if (tokenOpt.isEmpty()) {
-                ServletUtility.sendUnauthorized(response);
+                ServletUtility.sendAuthorizationException(response);
                 return;
             } else {
                 Map<String, Claim> claims = this.jwtUtil.validateAndGetClaims(tokenOpt.get().getValue());
 
                 // Return bad request if there is no validated claims.
                 if (claims == null || !claims.containsKey("userId") || claims.get("userId").isMissing()) {
-                    ServletUtility.sendUnauthorized(response);
+                    ServletUtility.sendAuthorizationException(response);
                     return;
                 } else {
                     request.setAttribute("currentUserId", claims.get("userId").asString());
@@ -80,7 +80,7 @@ public class AuthenticationFilter extends HttpFilter {
             }
         }
 
-        ServletUtility.sendUnauthorized(response);
+        ServletUtility.sendAuthorizationException(response);
         return;
     }
 }

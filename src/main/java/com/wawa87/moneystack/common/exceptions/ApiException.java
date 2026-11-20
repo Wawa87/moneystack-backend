@@ -18,6 +18,6 @@ public class ApiException extends Exception {
 
    public ApiException(String message, Throwable cause) {
        super(message, cause);
-       logger.error("ApiException: " + cause);
+       logger.error("ApiException: " + message + cause);
    }
 }

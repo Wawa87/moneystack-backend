@@ -108,7 +108,6 @@ public class TransactionServlet extends HttpServlet {
         }
 
         ServletUtility.sendBadRequest(response);
-        return;
     }
 
     @Override
@@ -144,7 +143,6 @@ public class TransactionServlet extends HttpServlet {
         }
 
         ServletUtility.sendBadRequest(response);
-        return;
     }
 
     @Override
@@ -173,6 +171,5 @@ public class TransactionServlet extends HttpServlet {
         }
 
         ServletUtility.sendBadRequest(response);
-        return;
     }
 }

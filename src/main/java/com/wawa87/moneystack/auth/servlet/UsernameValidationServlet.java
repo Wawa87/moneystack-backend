@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.rmi.ServerError;
+
 public class UsernameValidationServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(RegistrationServlet.class);
     private AppContext ctx;
@@ -36,16 +38,16 @@ public class UsernameValidationServlet extends HttpServlet {
             usernameValidationResponse.setResult(this.authenticationService.validateNewUsername(usernameValidationRequest.getUsername()));
             ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, usernameValidationResponse);
         } catch (InvalidUsernameException e) {
-            ServletUtility.sendInvalidUsernameException(response, e);
+            ServletUtility.sendValidationException(response, e);
             return;
         } catch (JsonSyntaxException e) {
             ServletUtility.sendInternalError(response, e);
             return;
         } catch (NumberFormatException e) {
-            ServletUtility.sendBadRequest(response);
+            ServletUtility.sendInternalError(response, e);
             return;
         } catch (Exception e) {
-            ServletUtility.sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error.");
+            ServletUtility.sendInternalError(response, e);
             return;
         }
     }

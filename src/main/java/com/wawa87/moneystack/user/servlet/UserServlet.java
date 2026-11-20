@@ -104,7 +104,7 @@ public class UserServlet extends HttpServlet {
                 ServletUtility.sendValidationException(response, e);
                 return;
             } catch (InvalidUsernameException e) {
-                ServletUtility.sendInvalidUsernameException(response, e);
+                ServletUtility.sendValidationException(response, e);
                 return;
             } catch (BadRequestException e) {
                 ServletUtility.sendBadRequest(response, e);
@@ -129,7 +129,10 @@ public class UserServlet extends HttpServlet {
                 ServletUtility.sendValidationException(response, e);
                 return;
             } catch (BadRequestException e) {
-                ServletUtility.sendBadRequest(response);
+                ServletUtility.sendBadRequest(response, e);
+                return;
+            } catch (Exception e) {
+                ServletUtility.sendInternalError(response, e);
                 return;
             }
         }
@@ -178,7 +181,7 @@ public class UserServlet extends HttpServlet {
                 return;
             } catch (Exception e) {
                 // TODO: Implement proper exception handling.
-                logger.error("Error: ", e);
+                ServletUtility.sendInternalError(response, e);
                 return;
             }
         }
@@ -191,7 +194,7 @@ public class UserServlet extends HttpServlet {
                 return;
             } catch (Exception e) {
                 // TODO: Implement proper exception handling.
-                logger.error("Error: ", e);
+                ServletUtility.sendInternalError(response, e);
                 return;
             }
         }
@@ -251,7 +254,7 @@ public class UserServlet extends HttpServlet {
             ServletUtility.sendResponse(response, HttpServletResponse.SC_NO_CONTENT, "User deleted: " + deleteUserId);
             return;
         } catch (NumberFormatException e) {
-            ServletUtility.sendBadRequest(response);
+            ServletUtility.sendInternalError(response, e);
             return;
         } catch (Exception e) {
             ServletUtility.sendInternalError(response, e);

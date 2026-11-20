@@ -53,10 +53,10 @@ public class AuthenticationServlet extends HttpServlet {
                 ServletUtility.sendResponseObject(response, HttpServletResponse.SC_OK, userResponse);
                 return;
             } catch (JsonSyntaxException e) {
-                ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad request.");
+                ServletUtility.sendInternalError(response, e);
                 return;
             } catch (JsonIOException e) {
-                ServletUtility.sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Bad request.");
+                ServletUtility.sendInternalError(response, e);
                 return;
             } catch (ValidationException e) {
                 ServletUtility.sendValidationException(response, e);
@@ -91,11 +91,13 @@ public class AuthenticationServlet extends HttpServlet {
                 ServletUtility.sendResponse(response, HttpServletResponse.SC_OK, "Your password has been updated. Please login again.");
                 return;
             } catch (IOException e) {
-                ServletUtility.sendUnauthorized(response);
+                ServletUtility.sendInternalError(response, e);
                 return;
             } catch (BadRequestException e) {
-                ServletUtility.sendBadRequest(response);
+                ServletUtility.sendBadRequest(response, e);
                 return;
+            } catch (Exception e) {
+                ServletUtility.sendInternalError(response, e);
             }
         }
 
