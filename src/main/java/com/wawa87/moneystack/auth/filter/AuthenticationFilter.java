@@ -39,6 +39,7 @@ public class AuthenticationFilter extends HttpFilter {
 
         ArrayList<String> authBypassPaths = new ArrayList<>();
         authBypassPaths.add("/auth");
+        authBypassPaths.add("/validateNewUsername");
 //        authBypassPaths.add("/register");
 //        authBypassPaths.add("/login");
 //        authBypassPaths.add("/validateNewUsername");
