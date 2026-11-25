@@ -41,12 +41,6 @@ public class AuthenticationFilter extends HttpFilter {
         authBypassPaths.add("/auth");
         authBypassPaths.add("/validateNewUsername");
         authBypassPaths.add("/register");
-//        authBypassPaths.add("/register");
-//        authBypassPaths.add("/login");
-//        authBypassPaths.add("/validateNewUsername");
-//        authBypassPaths.add("/validateNewUsername/");
-//        authBypassPaths.add("/forgot-password");
-//        authBypassPaths.add("/reset-password");
 
         if (authBypassPaths.contains(servletPath)) {
             filterChain.doFilter(request, response);

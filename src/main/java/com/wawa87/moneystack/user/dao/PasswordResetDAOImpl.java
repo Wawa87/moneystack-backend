@@ -151,6 +151,23 @@ public class PasswordResetDAOImpl implements PasswordResetDAO {
         }
     }
 
+    @Override
+    public int invalidateTokensByUserId(Long userId) {
+        String sql = "UPDATE " + TABLE + " SET "
+                + F_USED_AT + "=?"
+                + " WHERE " + F_USER_ID + "=?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now().format(formatter)));
+            stmt.setLong(2, userId);
+            return stmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("SQLException: ", e);
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
     private PasswordResetToken mapRow(ResultSet rs) throws SQLException {
         PasswordResetToken passwordResetToken = new PasswordResetToken();
         passwordResetToken.setId(rs.getLong(F_ID));

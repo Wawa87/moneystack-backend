@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 public class PasswordResetService {
@@ -45,6 +46,9 @@ public class PasswordResetService {
     }
 
     public String savePWToken(User user) {
+        // Invalidate existing tokens for User by setting usedAt date.
+        this.passwordResetDAO.invalidateTokensByUserId(user.getId());
+
         String plainToken = generatePlainToken();
         String hashToken = hashToken(plainToken);
 

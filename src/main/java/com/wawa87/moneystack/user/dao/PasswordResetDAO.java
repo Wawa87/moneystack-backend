@@ -16,4 +16,5 @@ public interface PasswordResetDAO {
 
     // Update
     int update(PasswordResetToken passwordResetToken);
+    int invalidateTokensByUserId(Long userId);
 }
